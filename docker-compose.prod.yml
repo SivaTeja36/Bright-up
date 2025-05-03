@@ -1,0 +1,60 @@
+version: "3.7"
+networks:
+  notification_v2:
+services:
+  notification_v2_db:
+    hostname: postgres
+    image: postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/
+    volumes:
+      - ${POSTGRES_DATA_PATH}:/var/lib/postgresql/data
+    ports:
+      - "54321:5432"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - notification_v2
+
+  notification_v2_api:
+    build:
+      context: .
+      dockerfile: dockerfile.prod
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - notification_v2_db
+    ports:
+      - 8080:80
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "5"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: postgres
+      RABBITMQ_HOST: rabbitmq
+      JWT_SECRET: ${JWT_SECRET}
+      IS_DOCKER: "True"
+      PORT: 80
+      LOG_LEVEL: "debug"
+      ACCESS_LOG: "./logfile.log"
+      ERROR_LOG: "./error.log"
+      # GUNICORN_CMD_ARGS: "--keyfile=./certificates/pk1.pem --certfile=./certificates/7ee6e81a4a59046c.pem"
+    volumes:
+      - ${TEMPLATE_DATA_PATH}:/app/templates/
+      - ${ATTACHMENTS_DATA_PATH}:/app/attachments/
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - notification_v2

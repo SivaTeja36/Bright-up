@@ -1,0 +1,7 @@
+.venv
+.env
+pg_data
+__pycache__
+.vscode
+frontend
+htmlcov

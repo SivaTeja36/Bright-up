@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "command": "pytest --cov-report html --cov=app test",
+            "name": "Test",
+            "request": "launch",
+            "type": "node-terminal"
+        },
+        {
+            "name": "Python: FastAPI",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.main:app",
+                "--reload"
+            ],
+            "jinja": true,
+            "justMyCode": true
+        }
+    ]
+}
