@@ -48,8 +48,8 @@ class StudentService:
         request: StudentRequest, 
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
-        existing_user = get_student_email(self.db, request.email)
-        validate_data_not_found(existing_user, STUDENT_EMAIL_ALREADY_EXISTS, 400)
+        existing_email = get_student_email(self.db, request.email)
+        validate_data_not_found(existing_email, STUDENT_EMAIL_ALREADY_EXISTS)
 
         new_student = Student(
             name=request.name,
@@ -144,7 +144,7 @@ class StudentService:
         validate_data_not_found(student, STUDENT_NOT_FOUND)
         
         existing_student= get_student_in_batch(self.db, student_id, request.batch_id)
-        validate_data_not_found(existing_student, STUDENT_ALREADY_EXISTS_IN_THE_BATCH, 400)
+        validate_data_not_found(existing_student, STUDENT_ALREADY_EXISTS_IN_THE_BATCH)
 
         student_batch = StudentBatch(
             student_id=student_id,

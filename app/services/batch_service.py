@@ -37,7 +37,8 @@ from app.utils.db_queries import (
     get_all_batches, 
     get_batch,
     get_batch_class_schedules,
-    get_class_schedule_by_batch_and_time
+    get_class_schedule_by_batch_and_time,
+    get_class_schedule_by_id
 )
 from app.utils.helpers import get_all_users_dict
 from app.utils.validation import (
@@ -209,7 +210,7 @@ class BatchService:
         schedule: ClassSchedule, 
         request: UpdateClassScheduleRequest, 
         batch_id: int
-    ):
+    ) -> None:
         if schedule.day != request.day.value or schedule.start_time != request.start_time:
             existing_class = get_class_schedule_by_batch_and_time(
                 self.db, batch_id, 
@@ -223,14 +224,15 @@ class BatchService:
 
     def update_schedule_by_id(
         self, 
-        schedule_id: int, 
+        schedule_id: int,
+        batch_id: int, 
         request: UpdateClassScheduleRequest, 
         user_id: int
     ) -> SuccessMessageResponse:
-        batch = get_batch(self.db, request.batch_id)
+        batch = get_batch(self.db, batch_id)
         validate_data_not_found(batch, BATCH_NOT_FOUND)
         
-        schedule = self.db.query(ClassSchedule).filter_by(id=schedule_id, is_active=True).first()
+        schedule = get_class_schedule_by_id(self.db, schedule_id)
         validate_data_not_found(schedule, CLASS_SCHEDULE_NOT_FOUND)
 
         self.validate_update_fields(schedule, request, schedule.batch_id)
@@ -241,12 +243,14 @@ class BatchService:
         schedule.updated_by = user_id
 
         self.db.commit()
+        
         return SuccessMessageResponse(message=CLASS_SCHEDULE_UPDATED_SUCCESSFULLY)
 
     def delete_schedule_by_id(self, schedule_id: int) -> SuccessMessageResponse:
-        schedule = self.db.query(ClassSchedule).filter_by(id=schedule_id, is_active=True).first()
+        schedule = get_class_schedule_by_id(self.db, schedule_id)
         validate_data_not_found(schedule, CLASS_SCHEDULE_NOT_FOUND)
 
-        schedule.is_active = False
+        self.db.delete(schedule)
         self.db.commit()
+        
         return SuccessMessageResponse(message=CLASS_SCHEDULE_DELETED_SUCCESSFULLY)

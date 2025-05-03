@@ -141,12 +141,13 @@ async def get_class_schedules_by_batch(
 )
 async def update_class_schedule_by_id(
     schedule_id: PositiveInt,
+    batch_id: PositiveInt,
     request: UpdateClassScheduleRequest,
     request_state: Request,
     service: BatchService = Depends(BatchService)
-):
+) -> ApiResponse[SuccessMessageResponse]:
     user_id = request_state.state.user.user_id
-    return ApiResponse(data=service.update_schedule_by_id(schedule_id, request, user_id))
+    return ApiResponse(data=service.update_schedule_by_id(schedule_id, batch_id, request, user_id))
 
 
 @router.delete(
@@ -157,5 +158,5 @@ async def update_class_schedule_by_id(
 async def delete_class_schedule_by_id(
     schedule_id: PositiveInt,
     service: BatchService = Depends(BatchService)
-):
+) -> ApiResponse[SuccessMessageResponse]:
     return ApiResponse(data=service.delete_schedule_by_id(schedule_id))

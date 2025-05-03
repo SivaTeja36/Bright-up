@@ -35,11 +35,9 @@ class GetBatchResponse(BaseModel):
     
     
 class ClassScheduleRequest(BaseModel):
-    batch_id: int
     day: Days
     start_time: time 
     end_time: time
-    is_active: bool 
     
     
 class GetClassScheduleResponse(BaseModel):
@@ -56,7 +54,6 @@ class GetClassScheduleResponse(BaseModel):
     
     
 class UpdateClassScheduleRequest(BaseModel):
-    batch_id: int
     day: Days
     start_time: time
     end_time: time

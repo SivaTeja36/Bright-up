@@ -71,6 +71,12 @@ def get_class_schedule_by_batch_and_time(db: Session, batch_id: int, day: str, s
         start_time=start_time,
         is_active=True
     ).first()
+    
+def get_class_schedule_by_id(db: Session, schedule_id: int) -> ClassSchedule:
+    """
+        Get class schedule by ID.
+    """
+    return db.query(ClassSchedule).filter_by(id=schedule_id, is_active=True).first()
 
 
 # ---------------------- STUDENT QUERIES ----------------------:
