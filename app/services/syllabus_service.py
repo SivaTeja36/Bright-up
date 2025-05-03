@@ -55,7 +55,7 @@ class SyllabusService:
     def get_syllabus_response(
         self,   
         syllabus: Syllabus,    
-    ):  
+    ) -> GetSyllabusResponse:  
         users = get_all_users_dict(self.db)
         
         return GetSyllabusResponse(

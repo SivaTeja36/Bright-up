@@ -76,6 +76,7 @@ async def get_batch_by_id(
     summary="Update batch by id"
 )
 async def update_batch_by_id(
+    request_state: Request,
     batch_id: PositiveInt,
     request: BatchRequest,
     service: BatchService = Depends(BatchService)
@@ -83,7 +84,8 @@ async def update_batch_by_id(
     """
         Update batch by id.
     """
-    return ApiResponse(data=service.update_batch_by_id(batch_id, request))
+    logged_in_user_id = request_state.state.user_id
+    return ApiResponse(data=service.update_batch_by_id(batch_id, request, logged_in_user_id))
 
 
 @router.delete(

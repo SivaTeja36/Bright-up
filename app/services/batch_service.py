@@ -16,7 +16,10 @@ from app.utils.constants import (
     BATCH_NOT_FOUND,
     BATCH_UPDATED_SUCCESSFULLY
 )
-from app.utils.db_queries import get_all_batches, get_batch
+from app.utils.db_queries import (
+    get_all_batches, 
+    get_batch
+)
 from app.utils.helpers import get_all_users_dict
 from app.utils.validation import validate_data_exists
 
@@ -34,6 +37,7 @@ class BatchService:
             syllabus_ids=request.syllabus_ids,
             start_date=request.start_date,
             end_date=request.end_date,
+            mentor_name=request.mentor_name,
             created_by=logged_in_user_id,
             updated_by=logged_in_user_id
         )
@@ -56,6 +60,7 @@ class BatchService:
             syllabus_ids=batch.syllabus_ids,
             start_date=batch.start_date,
             end_date=batch.end_date,
+            mentor_name=batch.mentor_name,
             created_at=batch.created_at,
             created_by=users.get(batch.created_by),
             updated_at=batch.updated_at,
@@ -76,7 +81,7 @@ class BatchService:
        
         return self.get_batch_response(batch)
 
-    def update_batch(
+    def update_batch_by_id(
         self, 
         batch_id: int, 
         request: BatchRequest, 
@@ -88,6 +93,7 @@ class BatchService:
         batch.syllabus_ids = request.syllabus_ids
         batch.start_date = request.start_date
         batch.end_date = request.end_date
+        batch.mentor_name = request.mentor_name
         batch.updated_at = func.now()
         batch.updated_by = logged_in_user_id
         batch.is_active = request.is_active
@@ -96,7 +102,7 @@ class BatchService:
         
         return SuccessMessageResponse(message=BATCH_UPDATED_SUCCESSFULLY)
 
-    def delete_batch(self, batch_id: int) -> SuccessMessageResponse:
+    def delete_batch_by_id(self, batch_id: int) -> SuccessMessageResponse:
         batch = get_batch(self.db, batch_id)
         validate_data_exists(batch, BATCH_NOT_FOUND)
         

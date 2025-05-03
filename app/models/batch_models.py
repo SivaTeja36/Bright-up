@@ -14,6 +14,7 @@ class BatchRequest(BaseModel):
     syllabus_ids: Optional[List[int]] = None
     start_date: date
     end_date: date
+    mentor_name: str
     is_active: Optional[bool] = True
     
 
@@ -22,6 +23,7 @@ class GetBatchResponse(BaseModel):
     syllabus: List[dict] = None
     start_date: date
     end_date: date
+    mentor_name: str
     created_at: datetime 
     created_by: str
     updated_at: datetime 

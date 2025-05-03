@@ -1,4 +1,4 @@
-"""adding student and student fee table
+"""adding student and student batches table
 
 Revision ID: 53c0a3d2b054
 Revises: 4271157a7a1a
@@ -40,7 +40,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
-    op.create_table('student_fees',
+    op.create_table('student_batches',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('student_id', sa.Integer(), nullable=False),
     sa.Column('batch_id', sa.Integer(), nullable=False),

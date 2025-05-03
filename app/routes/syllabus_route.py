@@ -76,6 +76,7 @@ async def get_syllabus_by_id(
     summary="Update syllabus by id"
 )
 async def update_syllabus_by_id(
+    request_state: Request,
     syllabus_id: PositiveInt,
     request: SyllabusRequest,
     service: SyllabusService = Depends(SyllabusService)
@@ -83,7 +84,8 @@ async def update_syllabus_by_id(
     """
         Update syllabus by id.
     """
-    return ApiResponse(data=service.update_syllabus_by_id(syllabus_id, request))
+    logged_in_user_id = request_state.state.user_id
+    return ApiResponse(data=service.update_syllabus_by_id(syllabus_id, request, logged_in_user_id))
 
 
 @router.delete(
