@@ -13,7 +13,10 @@ from app.models.base_response_model import (
 )
 from app.models.batch_models import (
     BatchRequest,
-    GetBatchResponse
+    ClassScheduleRequest,
+    GetBatchResponse,
+    GetClassScheduleResponse,
+    UpdateClassScheduleRequest
 )
 from app.services.batch_service import BatchService
 
@@ -102,3 +105,57 @@ async def delete_batch_by_id(
         Delete batch by id.
     """
     return ApiResponse(data=service.delete_batch_by_id(batch_id))
+
+
+@router.post(
+    "/{batch_id}/schedule-class",
+    response_model=ApiResponse[SuccessMessageResponse],
+    status_code=status.HTTP_201_CREATED
+)
+async def create_class_schedule(
+    batch_id: PositiveInt,
+    request: ClassScheduleRequest,
+    request_state: Request,
+    service: BatchService = Depends(BatchService)
+) -> ApiResponse[SuccessMessageResponse]:
+    user_id = request_state.state.user_id
+    return ApiResponse(data=service.create_schedule(batch_id, request, user_id))
+
+
+@router.get(
+    "/{batch_id}/schedule-class",
+    response_model=ApiResponse[List[GetClassScheduleResponse]],
+    status_code=status.HTTP_200_OK
+)
+async def get_class_schedules_by_batch(
+    batch_id: PositiveInt,
+    service: BatchService = Depends(BatchService)
+):
+    return ApiResponse(data=service.get_schedules_by_batch(batch_id))
+
+
+@router.put(
+    "/{batch_id}/schedule-class/{schedule_id}",
+    response_model=ApiResponse[SuccessMessageResponse],
+    status_code=status.HTTP_200_OK
+)
+async def update_class_schedule_by_id(
+    schedule_id: PositiveInt,
+    request: UpdateClassScheduleRequest,
+    request_state: Request,
+    service: BatchService = Depends(BatchService)
+):
+    user_id = request_state.state.user_id
+    return ApiResponse(data=service.update_schedule_by_id(schedule_id, request, user_id))
+
+
+@router.delete(
+    "/{batch_id}/schedule-class/{schedule_id}",
+    response_model=ApiResponse[SuccessMessageResponse],
+    status_code=status.HTTP_200_OK
+)
+async def delete_class_schedule_by_id(
+    schedule_id: PositiveInt,
+    service: BatchService = Depends(BatchService)
+):
+    return ApiResponse(data=service.delete_schedule_by_id(schedule_id))

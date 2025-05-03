@@ -4,6 +4,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.entities.batch import Batch
+from app.entities.class_schedule import ClassSchedule
 from app.entities.student import Student
 from app.entities.student_batch import StudentBatch
 from app.entities.syllabus import Syllabus
@@ -52,6 +53,9 @@ def get_all_batches(db: Session) -> List[Batch]:
     """
     return db.query(Batch).all()
 
+def get_batch_class_schedules(db: Session, batch_id: int):
+    return db.query(ClassSchedule).filter_by(batch_id=batch_id, is_active=True).all()
+
 
 # ---------------------- STUDENT QUERIES ----------------------:
 
@@ -84,3 +88,5 @@ def get_student_in_batch(db: Session, student_id: int, batch_id: int) -> Student
             StudentBatch.batch_id == batch_id
         ).first()
     )
+    
+    

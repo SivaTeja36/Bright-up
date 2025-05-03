@@ -1,3 +1,5 @@
+from typing import List
+
 from dataclasses import dataclass
 from fastapi import Depends
 from sqlalchemy import func
@@ -5,20 +7,33 @@ from sqlalchemy.orm import Session
 
 from app.connectors.database_connector import get_db
 from app.entities.batch import Batch
-from app.models.base_response_model import SuccessMessageResponse
+from app.entities.class_schedule import ClassSchedule
+from app.models.base_response_model import (
+    SuccessMessageResponse,  
+    
+)
 from app.models.batch_models import (
     BatchRequest, 
-    GetBatchResponse
+    GetBatchResponse,
+    GetClassScheduleResponse,
+    UpdateClassScheduleRequest
 )
+from app.models.batch_models import ClassScheduleRequest
 from app.utils.constants import (
     BATCH_CREATED_SUCCESSFULLY,
     BATCH_DELETED_SUCCESSFULLY,
     BATCH_NOT_FOUND,
-    BATCH_UPDATED_SUCCESSFULLY
+    BATCH_UPDATED_SUCCESSFULLY,
+    CLASS_SCHEDULE_CREATED_SUCCESSFULLY,
+    CLASS_SCHEDULE_DELETED_SUCCESSFULLY,
+    CLASS_SCHEDULE_NOT_FOUND,
+    CLASS_SCHEDULE_UPDATED_SUCCESSFULLY,
+    SCHEDULE_FOR_THIS_DAY_ALREADY_EXISTS_FOR_THIS_BATCH
 )
 from app.utils.db_queries import (
     get_all_batches, 
-    get_batch
+    get_batch,
+    get_batch_class_schedules
 )
 from app.utils.helpers import get_all_users_dict
 from app.utils.validation import validate_data_exists
@@ -110,3 +125,73 @@ class BatchService:
         self.db.commit()
         
         return SuccessMessageResponse(message=BATCH_DELETED_SUCCESSFULLY)
+    
+    def create_schedule(
+        self, batch_id: int, request: ClassScheduleRequest, user_id: int
+    ) -> SuccessMessageResponse:
+        existing_class = self.db.query(ClassSchedule).filter_by(
+            batch_id=batch_id,
+            day=request.day,
+            start_time=request.start_time,
+            is_active=True
+        ).first()
+        
+        validate_data_exists(existing_class, SCHEDULE_FOR_THIS_DAY_ALREADY_EXISTS_FOR_THIS_BATCH, 400)
+
+        schedule = ClassSchedule(
+            batch_id=batch_id,
+            day=request.day.value,
+            start_time=request.start_time,
+            end_time=request.end_time,
+            created_by=user_id,
+            updated_by=user_id
+        )
+        self.db.add(schedule)
+        self.db.commit()
+        
+        return SuccessMessageResponse(message=CLASS_SCHEDULE_CREATED_SUCCESSFULLY)
+    
+    def get_class_schedule_reponse(self, class_schedule: ClassSchedule):
+        user_dict = get_all_users_dict(self.db)
+        
+        return GetClassScheduleResponse(
+            id=class_schedule.id,
+            day=class_schedule.day,
+            start_time=class_schedule.start_time,
+            end_time=class_schedule.end_time,
+            created_at=class_schedule.created_at,
+            created_by=user_dict.get(class_schedule.created_by),
+            updated_at=class_schedule.updated_at, 
+            updated_by=user_dict.get(class_schedule.updated_by),
+            is_active=class_schedule.is_active   
+        )
+
+    def get_schedules_by_batch(self, batch_id: int) -> List[GetClassScheduleResponse]:
+        schedules = get_batch_class_schedules(self.db, batch_id)
+        
+        return [
+            self.get_class_schedule_reponse(class_schedule)
+            for class_schedule in schedules
+        ]
+
+    def update_schedule_by_id(
+        self, schedule_id: int, request: UpdateClassScheduleRequest, user_id: int
+    ) -> SuccessMessageResponse:
+        schedule = self.db.query(ClassSchedule).filter_by(id=schedule_id, is_active=True).first()
+        validate_data_exists(schedule, CLASS_SCHEDULE_NOT_FOUND)
+
+        schedule.day = request.day.value
+        schedule.start_time = request.start_time
+        schedule.end_time = request.end_time
+        schedule.updated_by = user_id
+
+        self.db.commit()
+        return SuccessMessageResponse(message=CLASS_SCHEDULE_UPDATED_SUCCESSFULLY)
+
+    def delete_schedule_by_id(self, schedule_id: int) -> SuccessMessageResponse:
+        schedule = self.db.query(ClassSchedule).filter_by(id=schedule_id, is_active=True).first()
+        validate_data_exists(schedule, CLASS_SCHEDULE_NOT_FOUND)
+
+        schedule.is_active = False
+        self.db.commit()
+        return SuccessMessageResponse(message=CLASS_SCHEDULE_DELETED_SUCCESSFULLY)

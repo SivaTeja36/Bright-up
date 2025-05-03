@@ -1,6 +1,7 @@
 from datetime import (
     date, 
-    datetime
+    datetime,
+    time
 )
 from typing import (
     Optional, 
@@ -8,6 +9,8 @@ from typing import (
 )
 
 from pydantic import BaseModel
+
+from app.utils.enums import Days
 
 
 class BatchRequest(BaseModel):
@@ -29,3 +32,30 @@ class GetBatchResponse(BaseModel):
     updated_at: datetime 
     updated_by: int
     is_active: bool 
+    
+    
+class ClassScheduleRequest(BaseModel):
+    batch_id: int
+    day: Days
+    start_time: time 
+    end_time: time
+    is_active: bool 
+    
+    
+class GetClassScheduleResponse(BaseModel):
+    id: int 
+    batch_id: int
+    day: str 
+    start_time: time 
+    end_time: time
+    created_at: datetime 
+    created_by: str
+    updated_at: datetime 
+    updated_by: str
+    is_active: bool    
+    
+    
+class UpdateClassScheduleRequest(BaseModel):
+    day: Days
+    start_time: time
+    end_time: time
