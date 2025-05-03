@@ -34,7 +34,7 @@ async def create_syllabus(
     """
         Create a new syllabus.
     """
-    logged_in_user_id = request_state.state.user_id
+    logged_in_user_id = request_state.state.user.user_id
     return ApiResponse(data=service.create_syllabus(request, logged_in_user_id))
 
 
@@ -84,7 +84,7 @@ async def update_syllabus_by_id(
     """
         Update syllabus by id.
     """
-    logged_in_user_id = request_state.state.user_id
+    logged_in_user_id = request_state.state.user.user_id
     return ApiResponse(data=service.update_syllabus_by_id(syllabus_id, request, logged_in_user_id))
 
 

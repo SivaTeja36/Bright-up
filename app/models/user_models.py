@@ -11,6 +11,7 @@ class UserCreationRequest(BaseModel):
     role: str
     contact: str
 
+
 class UserCreationResponse(BaseModel):
     id: int
     name: str 
@@ -19,6 +20,7 @@ class UserCreationResponse(BaseModel):
     role: str
     created_at: datetime
     is_active: bool
+
 
 class GetUserDetailsResponse(BaseModel):
     id: int
@@ -29,7 +31,9 @@ class GetUserDetailsResponse(BaseModel):
     created_at: datetime
     is_active: bool
 
+
 class CurrentContextUser():
+    user_id: int
     username: str
     name: str
     role: str

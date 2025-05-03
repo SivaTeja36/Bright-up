@@ -37,7 +37,7 @@ async def create_batch(
     """
         Create a new batch.
     """
-    logged_in_user_id = request_state.state.user_id
+    logged_in_user_id = request_state.state.user.user_id
     return ApiResponse(data=service.create_batch(request, logged_in_user_id))
 
 
@@ -87,7 +87,7 @@ async def update_batch_by_id(
     """
         Update batch by id.
     """
-    logged_in_user_id = request_state.state.user_id
+    logged_in_user_id = request_state.state.user.user_id
     return ApiResponse(data=service.update_batch_by_id(batch_id, request, logged_in_user_id))
 
 
@@ -118,7 +118,7 @@ async def create_class_schedule(
     request_state: Request,
     service: BatchService = Depends(BatchService)
 ) -> ApiResponse[SuccessMessageResponse]:
-    user_id = request_state.state.user_id
+    user_id = request_state.state.user.user_id
     return ApiResponse(data=service.create_schedule(batch_id, request, user_id))
 
 
@@ -145,7 +145,7 @@ async def update_class_schedule_by_id(
     request_state: Request,
     service: BatchService = Depends(BatchService)
 ):
-    user_id = request_state.state.user_id
+    user_id = request_state.state.user.user_id
     return ApiResponse(data=service.update_schedule_by_id(schedule_id, request, user_id))
 
 

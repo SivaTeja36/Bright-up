@@ -8,4 +8,4 @@ def get_all_users_dict(db: Session) -> dict:
     Get all users from the database and return them as a dictionary.
     """
     users = get_users(db)
-    return {user.id: user for user in users}
+    return {user.id: user.name for user in users}

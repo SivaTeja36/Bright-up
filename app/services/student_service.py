@@ -36,7 +36,7 @@ from app.utils.db_queries import (
     get_students
 )
 from app.utils.helpers import get_all_users_dict
-from app.utils.validation import validate_data_exists
+from app.utils.validation import validate_data_not_found
 
 
 @dataclass
@@ -49,7 +49,7 @@ class StudentService:
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
         existing_user = get_student_email(self.db, request.email)
-        validate_data_exists(existing_user, STUDENT_EMAIL_ALREADY_EXISTS, 400)
+        validate_data_not_found(existing_user, STUDENT_EMAIL_ALREADY_EXISTS, 400)
 
         new_student = Student(
             name=request.name,
@@ -102,7 +102,7 @@ class StudentService:
         
     def get_student_by_id(self, student_id: int) -> GetStudentResponse:
         student = get_student(self.db, student_id)
-        validate_data_exists(student, STUDENT_NOT_FOUND)
+        validate_data_not_found(student, STUDENT_NOT_FOUND)
 
         return self.get_student_response(student)
 
@@ -113,7 +113,7 @@ class StudentService:
         logged_in_user_id: int
     ) -> GetStudentResponse:
         student = get_student(self.db, student_id)
-        validate_data_exists(student, STUDENT_NOT_FOUND)
+        validate_data_not_found(student, STUDENT_NOT_FOUND)
 
         for key, value in request.dict().items():
             setattr(student, key, value)
@@ -127,7 +127,7 @@ class StudentService:
 
     def delete_student_by_id(self, student_id: int) -> None:
         student = get_student(self.db, student_id)
-        validate_data_exists(student, STUDENT_NOT_FOUND)
+        validate_data_not_found(student, STUDENT_NOT_FOUND)
 
         self.db.delete(student)
         self.db.commit()
@@ -141,10 +141,10 @@ class StudentService:
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
         student = get_student(self.db, student_id)
-        validate_data_exists(student, STUDENT_NOT_FOUND)
+        validate_data_not_found(student, STUDENT_NOT_FOUND)
         
         existing_student= get_student_in_batch(self.db, student_id, request.batch_id)
-        validate_data_exists(existing_student, STUDENT_ALREADY_EXISTS_IN_THE_BATCH, 400)
+        validate_data_not_found(existing_student, STUDENT_ALREADY_EXISTS_IN_THE_BATCH, 400)
 
         student_batch = StudentBatch(
             student_id=student_id,
@@ -195,7 +195,7 @@ class StudentService:
 
     def get_batch_student_by_id(self, mapping_id: int) -> SuccessMessageResponse:
         student_batch = get_mapped_batch_student(self.db, mapping_id)
-        validate_data_exists(student_batch, MAPPING_NOT_FOUND)
+        validate_data_not_found(student_batch, MAPPING_NOT_FOUND)
         student = get_student(self.db, student_batch.student_id)
 
         return self.get_batch_student_response(student, student_batch)
@@ -207,7 +207,7 @@ class StudentService:
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
         student_batch = get_mapped_batch_student(self.db, mapping_id)
-        validate_data_exists(student_batch, MAPPING_NOT_FOUND)
+        validate_data_not_found(student_batch, MAPPING_NOT_FOUND)
 
         student_batch.amount = request.amount
         student_batch.joined_at = request.joined_at
@@ -220,7 +220,7 @@ class StudentService:
 
     def delete_batch_student_by_id(self, mapping_id: int) -> SuccessMessageResponse:
         student_batch = get_mapped_batch_student(self.db, mapping_id)
-        validate_data_exists(student_batch, MAPPING_NOT_FOUND)
+        validate_data_not_found(student_batch, MAPPING_NOT_FOUND)
 
         self.db.delete(student_batch)
         self.db.commit() 

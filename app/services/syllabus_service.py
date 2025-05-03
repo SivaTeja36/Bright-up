@@ -26,7 +26,7 @@ from app.utils.db_queries import (
     get_syllabus_by_name
 )
 from app.utils.helpers import get_all_users_dict
-from app.utils.validation import validate_data_exists
+from app.utils.validation import validate_data_exits, validate_data_not_found
 
 
 @dataclass
@@ -38,6 +38,9 @@ class SyllabusService:
         request: SyllabusRequest, 
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
+        existing_syllabus = get_syllabus_by_name(self.db, request.name)
+        validate_data_exits(existing_syllabus, SYLLABUS_NAME_ALREADY_EXISTS)
+        
         syllabus = Syllabus(
             name=request.name,
             topics=list(set(request.topics)),
@@ -78,7 +81,7 @@ class SyllabusService:
         
     def get_syllabus_by_id(self, syllabus_id: int) -> Syllabus:
         syllabus = get_syllabus(self.db, syllabus_id)
-        validate_data_exists(syllabus, SYLLABUS_NOT_FOUND)
+        validate_data_not_found(syllabus, SYLLABUS_NOT_FOUND)
             
         return self.get_syllabus_response(syllabus)
     
@@ -89,12 +92,7 @@ class SyllabusService:
     ) -> None:
         if syllabus.name != request.name:
             existing_syllabus = get_syllabus_by_name(self.db, request.name)
-            
-            if existing_syllabus:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=SYLLABUS_NAME_ALREADY_EXISTS
-                )
+            validate_data_exits(existing_syllabus, SYLLABUS_NAME_ALREADY_EXISTS)
         
     def update_syllabus_by_id(
         self, 
@@ -103,7 +101,7 @@ class SyllabusService:
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
         syllabus = get_syllabus(self.db, syllabus_id)
-        validate_data_exists(syllabus, SYLLABUS_NOT_FOUND)
+        validate_data_not_found(syllabus, SYLLABUS_NOT_FOUND)
         self.validate_update_fields(syllabus, request)
         
         syllabus.name = request.name
@@ -122,7 +120,7 @@ class SyllabusService:
         syllabus_id: int
     ) -> SuccessMessageResponse:
         syllabus = get_syllabus(self.db, syllabus_id)
-        validate_data_exists(syllabus, SYLLABUS_NOT_FOUND)
+        validate_data_not_found(syllabus, SYLLABUS_NOT_FOUND)
         
         self.db.delete(syllabus)
         self.db.commit()

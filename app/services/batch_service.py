@@ -36,7 +36,7 @@ from app.utils.db_queries import (
     get_batch_class_schedules
 )
 from app.utils.helpers import get_all_users_dict
-from app.utils.validation import validate_data_exists
+from app.utils.validation import validate_data_not_found
 
 
 @dataclass
@@ -92,7 +92,7 @@ class BatchService:
     
     def get_batch_by_id(self, batch_id: int) -> GetBatchResponse:
         batch = get_batch(self.db, batch_id)
-        validate_data_exists(batch, BATCH_NOT_FOUND)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
        
         return self.get_batch_response(batch)
 
@@ -103,7 +103,7 @@ class BatchService:
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
         batch = get_batch(self.db, batch_id)
-        validate_data_exists(batch, BATCH_NOT_FOUND)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
         
         batch.syllabus_ids = request.syllabus_ids
         batch.start_date = request.start_date
@@ -119,7 +119,7 @@ class BatchService:
 
     def delete_batch_by_id(self, batch_id: int) -> SuccessMessageResponse:
         batch = get_batch(self.db, batch_id)
-        validate_data_exists(batch, BATCH_NOT_FOUND)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
         
         self.db.delete(batch)
         self.db.commit()
@@ -136,7 +136,7 @@ class BatchService:
             is_active=True
         ).first()
         
-        validate_data_exists(existing_class, SCHEDULE_FOR_THIS_DAY_ALREADY_EXISTS_FOR_THIS_BATCH, 400)
+        validate_data_not_found(existing_class, SCHEDULE_FOR_THIS_DAY_ALREADY_EXISTS_FOR_THIS_BATCH, 400)
 
         schedule = ClassSchedule(
             batch_id=batch_id,
@@ -178,7 +178,7 @@ class BatchService:
         self, schedule_id: int, request: UpdateClassScheduleRequest, user_id: int
     ) -> SuccessMessageResponse:
         schedule = self.db.query(ClassSchedule).filter_by(id=schedule_id, is_active=True).first()
-        validate_data_exists(schedule, CLASS_SCHEDULE_NOT_FOUND)
+        validate_data_not_found(schedule, CLASS_SCHEDULE_NOT_FOUND)
 
         schedule.day = request.day.value
         schedule.start_time = request.start_time
@@ -190,7 +190,7 @@ class BatchService:
 
     def delete_schedule_by_id(self, schedule_id: int) -> SuccessMessageResponse:
         schedule = self.db.query(ClassSchedule).filter_by(id=schedule_id, is_active=True).first()
-        validate_data_exists(schedule, CLASS_SCHEDULE_NOT_FOUND)
+        validate_data_not_found(schedule, CLASS_SCHEDULE_NOT_FOUND)
 
         schedule.is_active = False
         self.db.commit()

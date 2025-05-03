@@ -7,7 +7,7 @@ from fastapi import (
     status
 )
 from app.models.user_models import CurrentContextUser
-from app.utils.constants import AUTHORIZATION
+from app.utils.constants import AUTHORIZATION, INVALID_TOKEN
 load_dotenv()
 
 SECRET_KEY: str = os.getenv("JWT_SECRET")  # type: ignore
@@ -22,23 +22,21 @@ def __verify_jwt(token: str):
     
     if user:
         cur_user = CurrentContextUser()
+        cur_user.user_id = payload.get("user_id")
         cur_user.username = str(user)
         cur_user.role = cur_user
         return cur_user
 
 
 async def verify_auth_token(request: Request):
-    if (
-        "login" not in request.url.path
-        and "refresh" not in request.url.path
-        and "admin" in request.url.path
-    ):
+    print("request.url.path", request.url.path)
+    if "login" not in request.url.path and "refresh" not in request.url.path:
         auth: str = request.headers.get(AUTHORIZATION) or ""
+        
         try:
-            token = auth.strip().rsplit(".", 1)[0]
-            request.state.user = __verify_jwt(token=token)
+            request.state.user = __verify_jwt(token=auth)
         except Exception:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid Token"
+                detail=INVALID_TOKEN 
             )
