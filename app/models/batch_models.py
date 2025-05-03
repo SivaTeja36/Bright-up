@@ -30,7 +30,7 @@ class GetBatchResponse(BaseModel):
     created_at: datetime 
     created_by: str
     updated_at: datetime 
-    updated_by: int
+    updated_by: str
     is_active: bool 
     
     
@@ -56,6 +56,7 @@ class GetClassScheduleResponse(BaseModel):
     
     
 class UpdateClassScheduleRequest(BaseModel):
+    batch_id: int
     day: Days
     start_time: time
     end_time: time

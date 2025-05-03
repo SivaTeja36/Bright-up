@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.connectors.database_connector import get_db
 from app.entities.batch import Batch
 from app.entities.class_schedule import ClassSchedule
+from app.entities.syllabus import Syllabus
 from app.models.base_response_model import (
     SuccessMessageResponse,  
     
@@ -28,15 +29,21 @@ from app.utils.constants import (
     CLASS_SCHEDULE_DELETED_SUCCESSFULLY,
     CLASS_SCHEDULE_NOT_FOUND,
     CLASS_SCHEDULE_UPDATED_SUCCESSFULLY,
+    ONE_OR_MORE_SYLLABUS_NOT_FOUND,
     SCHEDULE_FOR_THIS_DAY_ALREADY_EXISTS_FOR_THIS_BATCH
 )
 from app.utils.db_queries import (
+    count_syllabus_by_ids,
     get_all_batches, 
     get_batch,
-    get_batch_class_schedules
+    get_batch_class_schedules,
+    get_class_schedule_by_batch_and_time
 )
 from app.utils.helpers import get_all_users_dict
-from app.utils.validation import validate_data_not_found
+from app.utils.validation import (
+    validate_data_exits, 
+    validate_data_not_found
+)
 
 
 @dataclass
@@ -48,8 +55,13 @@ class BatchService:
         request: BatchRequest, 
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
+        existing_syllabus_ids = count_syllabus_by_ids(self.db, request.syllabus_ids)
+        
+        if existing_syllabus_ids != len(request.syllabus_ids):
+            validate_data_not_found(False, ONE_OR_MORE_SYLLABUS_NOT_FOUND)
+        
         new_batch = Batch(
-            syllabus_ids=request.syllabus_ids,
+            syllabus_ids=list(set(request.syllabus_ids)),
             start_date=request.start_date,
             end_date=request.end_date,
             mentor_name=request.mentor_name,
@@ -69,10 +81,16 @@ class BatchService:
         batch: Batch,    
     ) -> GetBatchResponse:
         users = get_all_users_dict(self.db)
+        syllabus_details = self.db.query(Syllabus).filter(Syllabus.id.in_(batch.syllabus_ids)).all()
+        
+        syllabus = [
+            {syllabus.name: syllabus.topics}
+            for syllabus in syllabus_details
+        ]
         
         return GetBatchResponse(
             id=batch.id,
-            syllabus_ids=batch.syllabus_ids,
+            syllabus=syllabus,
             start_date=batch.start_date,
             end_date=batch.end_date,
             mentor_name=batch.mentor_name,
@@ -105,7 +123,12 @@ class BatchService:
         batch = get_batch(self.db, batch_id)
         validate_data_not_found(batch, BATCH_NOT_FOUND)
         
-        batch.syllabus_ids = request.syllabus_ids
+        existing_syllabus_ids = count_syllabus_by_ids(self.db, request.syllabus_ids)
+        
+        if existing_syllabus_ids != len(request.syllabus_ids):
+            validate_data_not_found(False, ONE_OR_MORE_SYLLABUS_NOT_FOUND)
+        
+        batch.syllabus_ids = list(set(request.syllabus_ids))
         batch.start_date = request.start_date
         batch.end_date = request.end_date
         batch.mentor_name = request.mentor_name
@@ -127,16 +150,23 @@ class BatchService:
         return SuccessMessageResponse(message=BATCH_DELETED_SUCCESSFULLY)
     
     def create_schedule(
-        self, batch_id: int, request: ClassScheduleRequest, user_id: int
+        self, 
+        batch_id: int, 
+        request: ClassScheduleRequest, 
+        user_id: int
     ) -> SuccessMessageResponse:
-        existing_class = self.db.query(ClassSchedule).filter_by(
-            batch_id=batch_id,
-            day=request.day,
-            start_time=request.start_time,
-            is_active=True
-        ).first()
+        batch = get_batch(self.db, batch_id)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
         
-        validate_data_not_found(existing_class, SCHEDULE_FOR_THIS_DAY_ALREADY_EXISTS_FOR_THIS_BATCH, 400)
+        existing_class = get_class_schedule_by_batch_and_time(
+            self.db, batch_id, 
+            request.day, request.start_time
+        )
+        
+        validate_data_exits(
+            existing_class, 
+            SCHEDULE_FOR_THIS_DAY_ALREADY_EXISTS_FOR_THIS_BATCH
+        )
 
         schedule = ClassSchedule(
             batch_id=batch_id,
@@ -173,12 +203,37 @@ class BatchService:
             self.get_class_schedule_reponse(class_schedule)
             for class_schedule in schedules
         ]
+        
+    def validate_update_fields(
+        self, 
+        schedule: ClassSchedule, 
+        request: UpdateClassScheduleRequest, 
+        batch_id: int
+    ):
+        if schedule.day != request.day.value or schedule.start_time != request.start_time:
+            existing_class = get_class_schedule_by_batch_and_time(
+                self.db, batch_id, 
+                request.day, request.start_time
+            )
+            
+            validate_data_exits(
+                existing_class, 
+                SCHEDULE_FOR_THIS_DAY_ALREADY_EXISTS_FOR_THIS_BATCH
+            )    
 
     def update_schedule_by_id(
-        self, schedule_id: int, request: UpdateClassScheduleRequest, user_id: int
+        self, 
+        schedule_id: int, 
+        request: UpdateClassScheduleRequest, 
+        user_id: int
     ) -> SuccessMessageResponse:
+        batch = get_batch(self.db, request.batch_id)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
+        
         schedule = self.db.query(ClassSchedule).filter_by(id=schedule_id, is_active=True).first()
         validate_data_not_found(schedule, CLASS_SCHEDULE_NOT_FOUND)
+
+        self.validate_update_fields(schedule, request, schedule.batch_id)
 
         schedule.day = request.day.value
         schedule.start_time = request.start_time

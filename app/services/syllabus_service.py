@@ -1,9 +1,5 @@
 from dataclasses import dataclass
-from fastapi import (
-    Depends, 
-    status,
-    HTTPException
-)
+from fastapi import Depends
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -26,7 +22,10 @@ from app.utils.db_queries import (
     get_syllabus_by_name
 )
 from app.utils.helpers import get_all_users_dict
-from app.utils.validation import validate_data_exits, validate_data_not_found
+from app.utils.validation import (
+    validate_data_exits, 
+    validate_data_not_found
+)
 
 
 @dataclass

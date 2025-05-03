@@ -38,6 +38,11 @@ def get_syllabus_by_name(db: Session, name: str) -> Syllabus:
     """
     return db.query(Syllabus).filter(func.lower(Syllabus.name) == name.lower()).first()
 
+def count_syllabus_by_ids(db: Session, syllabus_ids: List[int]) -> int:
+    """
+        Count the number of syllabus entries matching the given IDs.
+    """
+    return db.query(func.count(Syllabus.id)).filter(Syllabus.id.in_(syllabus_ids)).scalar()
 
 # ---------------------- BATCH QUERIES ----------------------:
 
@@ -55,6 +60,17 @@ def get_all_batches(db: Session) -> List[Batch]:
 
 def get_batch_class_schedules(db: Session, batch_id: int):
     return db.query(ClassSchedule).filter_by(batch_id=batch_id, is_active=True).all()
+
+def get_class_schedule_by_batch_and_time(db: Session, batch_id: int, day: str, start_time: str) -> ClassSchedule:
+    """
+        Get class schedule by batch ID, day, and start time.
+    """
+    return db.query(ClassSchedule).filter_by(
+        batch_id=batch_id,
+        day=day,
+        start_time=start_time,
+        is_active=True
+    ).first()
 
 
 # ---------------------- STUDENT QUERIES ----------------------:
