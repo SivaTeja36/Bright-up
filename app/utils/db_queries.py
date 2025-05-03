@@ -3,6 +3,7 @@ from typing import List
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.entities.batch import Batch
 from app.entities.syllabus import Syllabus
 from app.entities.user import User
 
@@ -33,3 +34,18 @@ def get_syllabus_by_name(db: Session, name: str) -> Syllabus:
         Get syllabus by name.
     """
     return db.query(Syllabus).filter(func.lower(Syllabus.name) == name.lower()).first()
+
+
+# ---------------------- BATCH QUERIES ----------------------:
+
+def get_batch(db: Session, batch_id: int) -> Batch:
+    """
+        Get batch by id.
+    """
+    return db.query(Batch).filter(Batch.id == batch_id).first()
+
+def get_all_batches(db: Session) -> List[Batch]:
+    """
+        Get all batches.
+    """
+    return db.query(Batch).all()

@@ -19,6 +19,7 @@ from app.services.syllabus_service import SyllabusService
 
 router = APIRouter(prefix="/syllabus", tags=["Syllabus Management Service"])
 
+
 @router.post(
     "", 
     response_model=ApiResponse[SuccessMessageResponse],
@@ -83,3 +84,19 @@ async def update_syllabus_by_id(
         Update syllabus by id.
     """
     return ApiResponse(data=service.update_syllabus_by_id(syllabus_id, request))
+
+
+@router.delete(
+    "/{syllabus_id}", 
+    response_model=ApiResponse[SuccessMessageResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Delete syllabus by id"
+)
+async def delete_syllabus_by_id(
+    syllabus_id: PositiveInt,
+    service: SyllabusService = Depends(SyllabusService)
+) -> ApiResponse[SuccessMessageResponse]:
+    """
+        Delete syllabus by id.
+    """
+    return ApiResponse(data=service.delete_syllabus_by_id(syllabus_id))

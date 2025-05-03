@@ -16,6 +16,7 @@ from app.models.syllabus_models import (
 )
 from app.utils.constants import (
     SYLLABUS_CREATED_SUCCESSFULLY,
+    SYLLABUS_DELETED_SUCCESSFULLY,
     SYLLABUS_NAME_ALREADY_EXISTS,
     SYLLABUS_NOT_FOUND
 )
@@ -115,3 +116,17 @@ class SyllabusService:
         return SuccessMessageResponse(
             message=SYLLABUS_CREATED_SUCCESSFULLY
         )     
+        
+    def delete_syllabus_by_id(
+        self, 
+        syllabus_id: int
+    ) -> SuccessMessageResponse:
+        syllabus = get_syllabus(self.db, syllabus_id)
+        validate_data_exists(syllabus, SYLLABUS_NOT_FOUND)
+        
+        self.db.delete(syllabus)
+        self.db.commit()
+        
+        return SuccessMessageResponse(
+            message=SYLLABUS_DELETED_SUCCESSFULLY
+        )    
