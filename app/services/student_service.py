@@ -174,6 +174,7 @@ class StudentService:
             email=student.email,
             phone_number=student.phone_number,
             amount=student_batch.amount,
+            balance_amount=student_batch.balance_amount,
             joined_at=student_batch.joined_at,
             created_at=student_batch.created_at,
             created_by=users_dict.get(student_batch.created_by),

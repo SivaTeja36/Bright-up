@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import Optional
 
 from pydantic import (
     BaseModel, 
@@ -51,6 +52,7 @@ class GetMappedBatchStudentResponse(BaseModel):
     email: str
     phone_number: str
     amount: int 
+    balance_amount: Optional[int] = None
     joined_at: date 
     created_at: datetime
     created_by: str

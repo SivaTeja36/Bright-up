@@ -12,6 +12,7 @@ class StudentBatch(Base):
     student_id: int = sa.Column(sa.Integer, sa.ForeignKey("students.id"), nullable=False) # type: ignore
     batch_id: int = sa.Column(sa.Integer, sa.ForeignKey("batches.id"), nullable=False) # type: ignore
     amount: int = sa.Column(sa.Integer, nullable=False) # type: ignore
+    balance_amount: int = sa.Column(sa.Integer, nullable=True, default=0) # type: ignore
     joined_at: date = sa.Column(sa.Date, nullable=False) # type: ignore
     created_at: datetime = sa.Column(sa.DateTime, nullable=False, default=sa.func.now()) # type: ignore
     created_by: int = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=False) # type: ignore
