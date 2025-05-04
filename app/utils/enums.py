@@ -3,6 +3,8 @@ from enum import Enum, StrEnum
 class Roles(Enum):
     SuperAdmin = 99
     Admin = 2
+    Mentor = 3
+    Student = 4
 
 class Days(StrEnum):
     Monday = "Monday"
