@@ -42,7 +42,6 @@ class ClassScheduleRequest(BaseModel):
     
 class GetClassScheduleResponse(BaseModel):
     id: int 
-    batch_id: int
     day: str 
     start_time: time 
     end_time: time

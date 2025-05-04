@@ -139,14 +139,14 @@ async def get_batch_students(
 
 @router.get(
     "/mappings/{mapping_id}",
-    response_model=ApiResponse[SuccessMessageResponse],
+    response_model=ApiResponse[GetMappedBatchStudentResponse],
     status_code=status.HTTP_200_OK,
     summary="Retrieve a student-batch mapping by ID"
 )
 async def get_batch_student_by_id(
     mapping_id: PositiveInt,
     service: StudentService = Depends(StudentService)
-) -> ApiResponse[SuccessMessageResponse]:
+) -> ApiResponse[GetMappedBatchStudentResponse]:
     return ApiResponse(data=service.get_batch_student_by_id(mapping_id))
 
 

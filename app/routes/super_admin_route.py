@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import (
     APIRouter, 
     Depends,
@@ -12,11 +13,11 @@ from app.models.user_models import (
 from automapper import mapper
 from app.services.user_service import UserService
 
-router = APIRouter(prefix="/user", tags=["User Management Service"])
+router = APIRouter(prefix="/users", tags=["User Management Service"])
 
 
 @router.post(
-    "/create", 
+    "", 
     response_model=ApiResponse[UserCreationResponse], 
     status_code=status.HTTP_201_CREATED
 )
@@ -26,6 +27,17 @@ async def create_user(
 ) -> ApiResponse[UserCreationResponse]:
     response = mapper.to(UserCreationResponse).map(service.create_user(request))
     return ApiResponse(data=response)
+
+
+@router.get(
+    "", 
+    response_model=ApiResponse[List[GetUserDetailsResponse]], 
+    status_code=status.HTTP_201_CREATED
+)
+async def get_all_users( 
+    service: UserService = Depends(UserService)
+) -> ApiResponse[List[GetUserDetailsResponse]]:
+    return ApiResponse(data=service.get_all_users())
 
 
 @router.get(

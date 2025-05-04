@@ -171,7 +171,7 @@ class BatchService:
 
         schedule = ClassSchedule(
             batch_id=batch_id,
-            day=request.day.value,
+            day=request.day,
             start_time=request.start_time,
             end_time=request.end_time,
             created_by=user_id,
@@ -182,7 +182,7 @@ class BatchService:
         
         return SuccessMessageResponse(message=CLASS_SCHEDULE_CREATED_SUCCESSFULLY)
     
-    def get_class_schedule_reponse(self, class_schedule: ClassSchedule):
+    def get_class_schedule_reponse(self, class_schedule: ClassSchedule) -> GetClassScheduleResponse:
         user_dict = get_all_users_dict(self.db)
         
         return GetClassScheduleResponse(
@@ -211,7 +211,7 @@ class BatchService:
         request: UpdateClassScheduleRequest, 
         batch_id: int
     ) -> None:
-        if schedule.day != request.day.value or schedule.start_time != request.start_time:
+        if schedule.day != request.day or schedule.start_time != request.start_time:
             existing_class = get_class_schedule_by_batch_and_time(
                 self.db, batch_id, 
                 request.day, request.start_time
@@ -237,7 +237,7 @@ class BatchService:
 
         self.validate_update_fields(schedule, request, schedule.batch_id)
 
-        schedule.day = request.day.value
+        schedule.day = request.day
         schedule.start_time = request.start_time
         schedule.end_time = request.end_time
         schedule.updated_by = user_id
@@ -246,7 +246,7 @@ class BatchService:
         
         return SuccessMessageResponse(message=CLASS_SCHEDULE_UPDATED_SUCCESSFULLY)
 
-    def delete_schedule_by_id(self, schedule_id: int) -> SuccessMessageResponse:
+    def delete_schedule_by_id(self, schedule_id: int, batch_id: int) -> SuccessMessageResponse:
         schedule = get_class_schedule_by_id(self.db, schedule_id)
         validate_data_not_found(schedule, CLASS_SCHEDULE_NOT_FOUND)
 

@@ -130,7 +130,7 @@ async def create_class_schedule(
 async def get_class_schedules_by_batch(
     batch_id: PositiveInt,
     service: BatchService = Depends(BatchService)
-):
+) -> ApiResponse[List[GetClassScheduleResponse]]:
     return ApiResponse(data=service.get_schedules_by_batch(batch_id))
 
 
@@ -157,6 +157,7 @@ async def update_class_schedule_by_id(
 )
 async def delete_class_schedule_by_id(
     schedule_id: PositiveInt,
+    batch_id: PositiveInt,
     service: BatchService = Depends(BatchService)
 ) -> ApiResponse[SuccessMessageResponse]:
-    return ApiResponse(data=service.delete_schedule_by_id(schedule_id))
+    return ApiResponse(data=service.delete_schedule_by_id(schedule_id, batch_id))

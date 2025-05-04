@@ -41,16 +41,17 @@ class UserService:
         self.db.add(user)
         self.db.commit()
         return user
+    
+    def get_all_users(self):
+        return [
+            mapper.to(GetUserDetailsResponse).map(user_details) 
+            for user_details in self.db.query(User).all()
+        ]
 
     def get_user_by_id(self, user_id: int) -> GetUserDetailsResponse:
         user_details = self.db.get(User, user_id)
         self.validate_user_details(user_details, user_id)
         return mapper.to(GetUserDetailsResponse).map(user_details)
-
-
-    def get_all_users(self):
-        return self.db.query(User).all()
-
 
     def validate_user(self, username: EmailStr, password: str) -> User | None:
         # this logic should be remvoed once we create some users.

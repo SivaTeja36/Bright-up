@@ -9,7 +9,7 @@ from pydantic import (
 class StudentRequest(BaseModel):
     name: str
     gender: str 
-    email: str
+    email: EmailStr
     phone_number: str
     degree: str 
     specialization: str 
@@ -32,9 +32,9 @@ class GetStudentResponse(BaseModel):
     state: str
     refered_by: str 
     created_at: datetime 
-    created_by: int 
+    created_by: str 
     updated_at: datetime 
-    updated_by: int 
+    updated_by: str 
     is_active: bool
     
 
@@ -45,6 +45,7 @@ class MapStudentToBatchRequest(BaseModel):
     
 
 class GetMappedBatchStudentResponse(BaseModel):
+    id: int
     name: str
     gender: str
     email: str

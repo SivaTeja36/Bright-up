@@ -36,7 +36,7 @@ from app.utils.db_queries import (
     get_students
 )
 from app.utils.helpers import get_all_users_dict
-from app.utils.validation import validate_data_not_found
+from app.utils.validation import validate_data_exits, validate_data_not_found
 
 
 @dataclass
@@ -49,7 +49,7 @@ class StudentService:
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
         existing_email = get_student_email(self.db, request.email)
-        validate_data_not_found(existing_email, STUDENT_EMAIL_ALREADY_EXISTS)
+        validate_data_exits(existing_email, STUDENT_EMAIL_ALREADY_EXISTS)
 
         new_student = Student(
             name=request.name,
@@ -144,7 +144,7 @@ class StudentService:
         validate_data_not_found(student, STUDENT_NOT_FOUND)
         
         existing_student= get_student_in_batch(self.db, student_id, request.batch_id)
-        validate_data_not_found(existing_student, STUDENT_ALREADY_EXISTS_IN_THE_BATCH)
+        validate_data_exits(existing_student, STUDENT_ALREADY_EXISTS_IN_THE_BATCH)
 
         student_batch = StudentBatch(
             student_id=student_id,
@@ -168,6 +168,7 @@ class StudentService:
         users_dict = get_all_users_dict(self.db)
         
         return GetMappedBatchStudentResponse(
+            id=student_batch.id,
             name=student.name,
             gender=student.gender,
             email=student.email,
@@ -193,7 +194,7 @@ class StudentService:
             for student, student_batch in results
         ]
 
-    def get_batch_student_by_id(self, mapping_id: int) -> SuccessMessageResponse:
+    def get_batch_student_by_id(self, mapping_id: int) -> GetMappedBatchStudentResponse:
         student_batch = get_mapped_batch_student(self.db, mapping_id)
         validate_data_not_found(student_batch, MAPPING_NOT_FOUND)
         student = get_student(self.db, student_batch.student_id)
