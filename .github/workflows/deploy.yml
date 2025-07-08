@@ -1,0 +1,22 @@
+name: Deploy to Mac mini
+
+on:
+  push:
+    branches:
+      - main  # or your deploy branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Copy files to Mac mini
+        uses: appleboy/scp-action@v0.1.6
+        with:
+          host: 115.246.221.234
+          username: punit
+          key: ${{ secrets.MACMINI_SSH_KEY }}
+          source: "."
+          target: "/Users/punit/www"
