@@ -3,17 +3,29 @@ name: Deploy to Mac mini
 on:
   push:
     branches:
-      - main  # or your deploy branch
+      - main
 
 jobs:
   deploy:
     runs-on: self-hosted
+    environment: punit_vm  # This is crucial to get access to your environment variables
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Rename docker-compose.prod.yml and start containers
+      - name: Rename and start containers with environment variables
         run: |
           mv docker-compose.prod.yml docker-compose.yml
           docker compose up -d
+        env:
+          POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
+          POSTGRES_DATA_PATH: ${{ vars.POSTGRES_DATA_PATH }}
+          TEMPLATE_DATA_PATH: ${{ vars.TEMPLATE_DATA_PATH }}
+          ATTACHMENTS_DATA_PATH: ${{ vars.ATTACHMENTS_DATA_PATH }}
+          JWT_SECRET: ${{ vars.JWT_SECRET }}
+          POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}
+          RABBITMQ_HOST: ${{ vars.RABBITMQ_HOST }}
+          RABBITMQ_DATA_PATH: ${{ vars.RABBITMQ_DATA_PATH }}
