@@ -12,6 +12,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Install Tailscale
+        run: |
+          curl -fsSL https://tailscale.com/install.sh | sh
+          sudo tailscale up --authkey ${{ secrets.TAILSCALE_AUTHKEY }} --hostname github-runner --ssh
+ 
+      - name: Ping a Tailscale device
+        run: |
+          ping -c 4 100.76.154.55
+
       - name: Copy files to Mac mini
         uses: appleboy/scp-action@v0.1.6
         with:
