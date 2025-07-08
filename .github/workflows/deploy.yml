@@ -15,7 +15,7 @@ jobs:
       - name: Copy files to Mac mini
         uses: appleboy/scp-action@v0.1.6
         with:
-          host: 115.246.221.234
+          host: 100.76.154.55
           username: punit
           key: ${{ secrets.MACMINI_SSH_KEY }}
           source: "."
