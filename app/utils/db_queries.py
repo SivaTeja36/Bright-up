@@ -95,20 +95,27 @@ def get_class_schedule_by_batch_and_time(db: Session, batch_id: int, day: str, s
         is_active=True
     ).first()
     
-def get_class_schedule_by_id(db: Session, schedule_id: int) -> ClassSchedule:
+def get_class_schedule_by_id(db: Session, schedule_id: int, batch_id: int) -> ClassSchedule:
     """
         Get class schedule by ID.
     """
-    return db.query(ClassSchedule).filter_by(id=schedule_id, is_active=True).first()
+    return (
+        db.query(ClassSchedule)
+        .filter_by(
+            id=schedule_id, 
+            batch_id=batch_id, 
+            is_active=True
+        ).first()
+    )
 
 
 # ---------------------- STUDENT QUERIES ----------------------:
 
-def get_student_email(db: Session, student_email: int) -> Student:
+def get_student_by_id(db: Session, user_id: int) -> Student:
     """
         Get student email by id.
     """
-    return db.query(Student).filter(Student.email == student_email).first()
+    return db.query(Student).filter(Student.user_id == user_id).first()
 
 def get_student(db: Session, student_id: int) -> Student:
     """

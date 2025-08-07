@@ -4,7 +4,7 @@ from pydantic import field_validator
 import sqlalchemy as sa
 
 from app.connectors.database_connector import Base
-from app.utils.enums import Roles
+from app.utils.enums import GenderTypes, Roles
 from app.utils.hasher import Hasher
 from app.utils.validation import validate_password
 
@@ -14,6 +14,7 @@ class User(Base):
     id: int = sa.Column(sa.Integer, primary_key=True, nullable=False) 
     name: str = sa.Column(sa.String(50), nullable=False) 
     email: str = sa.Column(sa.String(100), nullable=False, index=True, unique=True) 
+    __gender: int = sa.Column(name="gender", type_=sa.Integer, nullable=False)
     __password: str = sa.Column(name="password", type_=sa.String(200), nullable=False, index=True) 
     phone_number: str = sa.Column(sa.String(20), nullable=False, unique=True) 
     __role: int = sa.Column(name="role", type_=sa.Integer, nullable=False)
@@ -24,12 +25,20 @@ class User(Base):
     is_active: bool = sa.Column(sa.Boolean, nullable=False, default=True)
     
     @property
+    def gender(self):
+        return GenderTypes(self.__gender).name
+    
+    @property
     def password(self):
         raise AttributeError('password is not a readable attribute, use verify_password method for verifying')
     
     @property
     def role(self):
         return Roles(self.__role).name
+    
+    @gender.setter
+    def gender(self, gender: str):
+        self.__gender = GenderTypes[gender].value
     
     @role.setter
     def role(self, role_from: str):

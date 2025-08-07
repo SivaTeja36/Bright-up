@@ -11,6 +11,11 @@ class Roles(Enum):
     GUEST = 4
 
 
+class GenderTypes(Enum):
+    MALE = 1
+    FEMALE = 2    
+
+
 class Days(StrEnum):
     Monday = "Monday"
     Tuesday = "Tuesday"

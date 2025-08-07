@@ -16,8 +16,9 @@ class BatchStudent(Base):
     student_id: int = sa.Column(sa.Integer, sa.ForeignKey("students.id"), nullable=False) # type: ignore
     class_amount: int = sa.Column(sa.Integer, nullable=False) # type: ignore
     amount_paid: int = sa.Column(sa.Integer, nullable=False, default=0) # type: ignore
+    balance_amount: int = sa.Column(sa.Integer, nullable=False, default=0) # type: ignore
     mentor_amount: int = sa.Column(sa.Integer, nullable=False, default=0) # type: ignore
-    referral_id: int = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=True)
+    referral_by: int = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=True)
     referral_percentage: float = sa.Column(sa.REAL, nullable=False)
     referral_amount: int = sa.Column(sa.Integer, nullable=False, default=0) # type: ignore
     joined_at: date = sa.Column(sa.Date, nullable=False) # type: ignore

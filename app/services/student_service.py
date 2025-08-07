@@ -1,13 +1,15 @@
 from dataclasses import dataclass
-from typing import List
+from typing import Dict, List
 
 from fastapi import Depends
 from sqlalchemy import func
+from sqlalchemy.orm import aliased
 from sqlalchemy.orm import Session
 
 from app.connectors.database_connector import get_db
 from app.entities.student import Student
 from app.entities.batch_student import BatchStudent
+from app.entities.user import User
 from app.models.base_response_model import SuccessMessageResponse
 from app.models.student_models import (
     GetMappedBatchStudentResponse,
@@ -24,14 +26,14 @@ from app.utils.constants import (
     STUDENT_BATCH_DETAILS_UPDATED_SUCCESSFULLY,
     STUDENT_CREATED_SUCCESSFULLY,
     STUDENT_DELETED_SUCCESSFULLY,
-    STUDENT_EMAIL_ALREADY_EXISTS,
+    STUDENT_DETAILS_ALREADY_EXISTS,
     STUDENT_NOT_FOUND,
     STUDENT_UPDATED_SUCCESSFULLY
 )
 from app.utils.db_queries import (
     get_mapped_batch_student,
-    get_student, 
-    get_student_email,
+    get_student,
+    get_student_by_id, 
     get_student_in_batch,
     get_students
 )
@@ -51,20 +53,17 @@ class StudentService:
         request: StudentRequest, 
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
-        existing_email = get_student_email(self.db, request.email)
-        validate_data_exits(existing_email, STUDENT_EMAIL_ALREADY_EXISTS)
+        student_details = get_student_by_id(self.db, request.user_id)
+        validate_data_exits(student_details, STUDENT_DETAILS_ALREADY_EXISTS)
 
         new_student = Student(
-            name=request.name,
-            gender=request.gender,
-            email=request.email,
-            phone_number=request.phone_number,
+            user_id=request.user_id,
             degree=request.degree,
             specialization=request.specialization,
             passout_year=request.passout_year,
             city=request.city,
             state=request.state,
-            refered_by=request.refered_by,
+            referral_by=request.referral_by,
             created_by=logged_in_user_id,
             updated_by=logged_in_user_id
         )
@@ -73,21 +72,21 @@ class StudentService:
 
         return SuccessMessageResponse(message=STUDENT_CREATED_SUCCESSFULLY)
     
-    def get_student_response(self, student: Student) -> GetStudentResponse:
-        users = get_all_users_dict(self.db)
+    def get_student_response(
+        self, 
+        student: Student,
+        users: Dict[int, str]
+    ) -> GetStudentResponse:
         
         return GetStudentResponse(
             id=student.id,
-            name=student.name,
-            gender=student.gender,
-            email=student.email,
-            phone_number=student.phone_number,
+            name=users.get(student.user_id),
             degree=student.degree,
             specialization=student.specialization,
             passout_year=student.passout_year,
             city=student.city,
             state=student.state,
-            refered_by=student.refered_by,
+            referral_by=users.get(student.referral_by),
             created_at=student.created_at,
             created_by=users.get(student.created_by),
             updated_at=student.updated_at,
@@ -97,9 +96,10 @@ class StudentService:
         
     def get_all_students(self) -> List[GetStudentResponse]:
         students = get_students(self.db)  
+        users = get_all_users_dict(self.db)
         
         return [
-            self.get_student_response(student)
+            self.get_student_response(student, users)
             for student in students
         ]
         
@@ -150,9 +150,14 @@ class StudentService:
         validate_data_exits(existing_student, STUDENT_ALREADY_EXISTS_IN_THE_BATCH)
 
         student_batch = BatchStudent(
-            student_id=student_id,
             batch_id=request.batch_id,
-            amount=request.amount,
+            student_id=student_id,
+            class_amount=request.class_amount,
+            amount_paid=request.amount_paid,
+            mentor_amount=request.mentor_amount,
+            referral_by=request.referral_by,
+            referral_percentage=request.referral_percentage,
+            referral_amount=request.referral_amount,
             joined_at=request.joined_at,
             created_by=logged_in_user_id,
             updated_by=logged_in_user_id
@@ -164,20 +169,24 @@ class StudentService:
         return SuccessMessageResponse(message=STUDENT_BATCH_DETAILS_CREATED_SUCCESSFULLY)
     
     def get_batch_student_response(
-        self, 
-        student: Student, 
-        student_batch: BatchStudent
-    ) -> GetMappedBatchStudentResponse:
-        users_dict = get_all_users_dict(self.db)
-        
+            self,
+            student_user: User,
+            student_batch: BatchStudent,
+            users_dict: dict[int, str] 
+        ) -> GetMappedBatchStudentResponse:
+
         return GetMappedBatchStudentResponse(
             id=student_batch.id,
-            name=student.name,
-            gender=student.gender,
-            email=student.email,
-            phone_number=student.phone_number,
-            amount=student_batch.amount,
+            name=student_user.name,
+            gender=student_user.gender,  
+            email=student_user.email,
+            phone_number=student_user.phone_number,
+            class_amount=student_batch.class_amount,
+            mentor_amount=student_batch.mentor_amount,
             balance_amount=student_batch.balance_amount,
+            referral_by=users_dict.get(student_batch.referral_by),
+            referral_percentage=student_batch.referral_percentage,
+            referral_amount=student_batch.referral_amount,
             joined_at=student_batch.joined_at,
             created_at=student_batch.created_at,
             created_by=users_dict.get(student_batch.created_by),
@@ -186,16 +195,21 @@ class StudentService:
         )
 
     def get_batch_students(self, batch_id: int) -> List[GetMappedBatchStudentResponse]:
+        StudentUser = aliased(User)
+
         results = (
-            self.db.query(Student, BatchStudent)
+            self.db.query(Student, StudentUser, BatchStudent)
             .join(BatchStudent, Student.id == BatchStudent.student_id)
+            .join(StudentUser, Student.user_id == StudentUser.id)
             .filter(BatchStudent.batch_id == batch_id)
             .all()
         )
 
+        users_dict = get_all_users_dict(self.db) 
+
         return [
-            self.get_batch_student_response(student, student_batch)
-            for student, student_batch in results
+            self.get_batch_student_response(student_user, student_batch, users_dict)
+            for _, student_user, student_batch in results
         ]
 
     def get_batch_student_by_id(self, mapping_id: int) -> GetMappedBatchStudentResponse:
@@ -214,7 +228,7 @@ class StudentService:
         student_batch = get_mapped_batch_student(self.db, mapping_id)
         validate_data_not_found(student_batch, MAPPING_NOT_FOUND)
 
-        student_batch.amount = request.amount
+        student_batch.class_amount = request.amount
         student_batch.joined_at = request.joined_at
         student_batch.updated_at = func.now()
         student_batch.updated_by = logged_in_user_id

@@ -8,40 +8,39 @@ from pydantic import (
 
 
 class StudentRequest(BaseModel):
-    name: str
-    gender: str 
-    email: EmailStr
-    phone_number: str
+    user_id: int
     degree: str 
     specialization: str 
-    passout_year: int 
+    passout_year: int
     city: str 
-    state: str 
-    refered_by: str
+    state: str
+    referral_by: int 
     
 
 class GetStudentResponse(BaseModel):
     id: int 
-    name: str 
-    gender: str
-    email: EmailStr 
-    phone_number: str 
+    name: str
     degree: str 
-    specialization: str 
+    specialization: str
     passout_year: int 
-    city: str 
+    city: str
     state: str
-    refered_by: str 
+    referral_by: str 
     created_at: datetime 
-    created_by: str 
+    created_by: str
     updated_at: datetime 
-    updated_by: str 
-    is_active: bool
+    updated_by: str
+    is_active: bool 
     
 
 class MapStudentToBatchRequest(BaseModel):
     batch_id: int 
-    amount: int 
+    class_amount: int 
+    amount_paid: int
+    mentor_amount: int 
+    referral_by: int 
+    referral_percentage: float 
+    referral_amount: int
     joined_at: date
     
 
@@ -51,8 +50,12 @@ class GetMappedBatchStudentResponse(BaseModel):
     gender: str
     email: str
     phone_number: str
-    amount: int 
+    class_amount: int 
+    mentor_amount: int
     balance_amount: Optional[int] = None
+    referral_by: str
+    referral_percentage: float
+    referral_amount: int
     joined_at: date 
     created_at: datetime
     created_by: str
