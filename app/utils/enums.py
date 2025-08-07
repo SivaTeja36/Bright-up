@@ -1,10 +1,15 @@
-from enum import Enum, StrEnum
+from enum import (
+    Enum, 
+    StrEnum
+)
+
 
 class Roles(Enum):
-    SuperAdmin = 99
-    Admin = 2
-    Mentor = 3
-    Student = 4
+    ADMIN = 1
+    MENTOR = 2
+    STUDENT = 3
+    GUEST = 4
+
 
 class Days(StrEnum):
     Monday = "Monday"
@@ -14,3 +19,11 @@ class Days(StrEnum):
     Friday = "Friday"
     Saturday = "Saturday"
     Sunday = "Sunday"
+
+
+class OrderByTypes(StrEnum):
+    """
+        Enumeration of sorting types.
+    """
+    ASC = "asc"
+    DESC = "desc"    

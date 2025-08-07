@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from pydantic import (
     BaseModel, 
     EmailStr
@@ -6,34 +7,32 @@ from pydantic import (
 
 class UserCreationRequest(BaseModel):
     name: str
-    username: EmailStr
+    email: EmailStr
     password: str
     role: str
-    contact: str
+    phone_number: str
 
 
 class UserCreationResponse(BaseModel):
     id: int
-    name: str 
-    username: str 
-    contact: str
-    role: str
-    created_at: datetime
-    is_active: bool
+    message: str
 
 
 class GetUserDetailsResponse(BaseModel):
     id: int
     name: str 
-    username: str 
-    contact: str
+    email: str 
+    phone_number: str
     role: str
     created_at: datetime
+    created_by: Optional[str] = None
+    updated_at: datetime
+    updated_by: Optional[str] = None
     is_active: bool
 
 
 class CurrentContextUser():
-    user_id: int
-    username: str
+    id: int
     name: str
+    email: str
     role: str

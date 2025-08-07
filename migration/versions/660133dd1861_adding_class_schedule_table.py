@@ -1,8 +1,8 @@
 """adding class_schedule table
 
-Revision ID: 5c3f13f5b93b
-Revises: 53c0a3d2b054
-Create Date: 2025-05-03 13:08:00.103760
+Revision ID: 660133dd1861
+Revises: 8806500ad249
+Create Date: 2025-08-07 12:42:07.471414
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5c3f13f5b93b'
-down_revision = '53c0a3d2b054'
+revision = '660133dd1861'
+down_revision = '8806500ad249'
 branch_labels = None
 depends_on = None
 

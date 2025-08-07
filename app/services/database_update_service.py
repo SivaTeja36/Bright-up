@@ -1,15 +1,25 @@
-from dataclasses import dataclass
+import argparse
 import traceback
+
+from dataclasses import dataclass
 from fastapi import Depends
 from sqlalchemy.orm import Session
-import sqlalchemy as sa
-from alembic import command, script
+from alembic import (
+    command, 
+    script
+)
 from alembic.config import Config
 from alembic.migration import MigrationContext
-from app.connectors.database_connector import get_database, get_db
-from app.utils.constants import DB_NOT_UPTODATE, PUBLIC_SCHEMA
+
+from app.connectors.database_connector import (
+    get_database, 
+    get_db
+)
+from app.utils.constants import (
+    DB_NOT_UPTODATE, 
+    PUBLIC_SCHEMA
+)
 from app.utils.utils import get_project_root
-import argparse
 
 
 @dataclass

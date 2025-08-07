@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.entities.batch import Batch
 from app.entities.class_schedule import ClassSchedule
 from app.entities.student import Student
-from app.entities.student_batch import StudentBatch
+from app.entities.batch_student import BatchStudent
 from app.entities.syllabus import Syllabus
 from app.entities.user import User
 
@@ -17,6 +17,29 @@ def get_users(db: Session) -> List[User]:
     """
     return db.query(User).all()
 
+def get_user_by_id(db: Session, user_id: int):
+    return (
+        db.query(User)
+        .filter(
+            User.id == user_id
+        ).first()
+    )
+
+def get_user_by_email(db: Session, email: str):
+    return (
+        db.query(User)
+        .filter(
+            func.lower(User.email) == email.lower()
+        ).first()
+    )
+
+def get_user_by_phone_number(db: Session, phone_number: str):
+    return (
+        db.query(User)
+        .filter(
+            User.phone_number == phone_number
+        ).first()
+    )
 
 # ---------------------- SYLLABUS QUERIES ----------------------:
 
@@ -99,15 +122,15 @@ def get_students(db: Session) -> List[Student]:
     """
     return db.query(Student).all()
 
-def get_mapped_batch_student(db: Session, mapping_id: int) -> StudentBatch:
-    return db.query(StudentBatch).filter(StudentBatch.id == mapping_id).first()
+def get_mapped_batch_student(db: Session, mapping_id: int) -> BatchStudent:
+    return db.query(BatchStudent).filter(BatchStudent.id == mapping_id).first()
 
-def get_student_in_batch(db: Session, student_id: int, batch_id: int) -> StudentBatch:
+def get_student_in_batch(db: Session, student_id: int, batch_id: int) -> BatchStudent:
     return (
-        db.query(StudentBatch)
+        db.query(BatchStudent)
         .filter(
-            StudentBatch.student_id == student_id,
-            StudentBatch.batch_id == batch_id
+            BatchStudent.student_id == student_id,
+            BatchStudent.batch_id == batch_id
         ).first()
     )
     

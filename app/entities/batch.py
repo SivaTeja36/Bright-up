@@ -12,7 +12,7 @@ class Batch(Base):
     syllabus_ids: list = sa.Column(sa.ARRAY(sa.Integer), nullable=True) # type: ignore
     start_date: date = sa.Column(sa.Date, nullable=False) # type: ignore
     end_date: date = sa.Column(sa.Date, nullable=False) # type: ignore
-    mentor_name: str = sa.Column(sa.String(100), nullable=False) # type: ignore
+    mentor: str = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=True) # type: ignore
     created_at: datetime = sa.Column(sa.DateTime, nullable=False, default=sa.func.now()) # type: ignore
     created_by: int = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=False) # type: ignore
     updated_at: datetime = sa.Column(sa.DateTime, nullable=False, default=sa.func.now()) # type: ignore

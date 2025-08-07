@@ -1,21 +1,19 @@
-from datetime import datetime
+from datetime import (
+    datetime
+)
 
 import sqlalchemy as sa
 
 from app.connectors.database_connector import Base
 
 
-class Student(Base):
-    __tablename__ = "students"
+class Contact(Base):
+    __tablename__ = "contacts"
 
     id: int = sa.Column(sa.Integer, primary_key=True, nullable=False) # type: ignore
-    user_id: int = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=False)
-    degree: str = sa.Column(sa.String(100), nullable=False) # type: ignore)
-    specialization: str = sa.Column(sa.String(100), nullable=False) # type: ignore)
-    passout_year: int = sa.Column(sa.Integer, nullable=False) # type: ignore
-    city: str = sa.Column(sa.String(100), nullable=False) # type: ignore
-    state: str = sa.Column(sa.String(100), nullable=False) # type: ignore
-    referred_by: int = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=False) # type: ignore
+    name: int = sa.Column(sa.Integer, sa.ForeignKey("batches.id"), nullable=False) # type: ignore
+    phone_number: str = sa.Column(sa.String(15), nullable=False) # type: ignore
+    comment: str = sa.Column(sa.Text, nullable=False) # type: ignore
     created_at: datetime = sa.Column(sa.DateTime, nullable=False, default=sa.func.now()) # type: ignore
     created_by: int = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=False) # type: ignore
     updated_at: datetime = sa.Column(sa.DateTime, nullable=False, default=sa.func.now()) # type: ignore

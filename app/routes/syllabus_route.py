@@ -17,7 +17,7 @@ from app.models.syllabus_models import (
 )
 from app.services.syllabus_service import SyllabusService
 
-router = APIRouter(prefix="/syllabus", tags=["Syllabus Management Service"])
+router = APIRouter(prefix="/syllabus", tags=["SYLLABUS MANAGEMENT SERVICE"])
 
 
 @router.post(

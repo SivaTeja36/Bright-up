@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.connectors.database_connector import get_db
 from app.entities.student import Student
-from app.entities.student_batch import StudentBatch
+from app.entities.batch_student import BatchStudent
 from app.models.base_response_model import SuccessMessageResponse
 from app.models.student_models import (
     GetMappedBatchStudentResponse,
@@ -36,7 +36,10 @@ from app.utils.db_queries import (
     get_students
 )
 from app.utils.helpers import get_all_users_dict
-from app.utils.validation import validate_data_exits, validate_data_not_found
+from app.utils.validation import (
+    validate_data_exits, 
+    validate_data_not_found
+)
 
 
 @dataclass
@@ -146,7 +149,7 @@ class StudentService:
         existing_student= get_student_in_batch(self.db, student_id, request.batch_id)
         validate_data_exits(existing_student, STUDENT_ALREADY_EXISTS_IN_THE_BATCH)
 
-        student_batch = StudentBatch(
+        student_batch = BatchStudent(
             student_id=student_id,
             batch_id=request.batch_id,
             amount=request.amount,
@@ -163,7 +166,7 @@ class StudentService:
     def get_batch_student_response(
         self, 
         student: Student, 
-        student_batch: StudentBatch
+        student_batch: BatchStudent
     ) -> GetMappedBatchStudentResponse:
         users_dict = get_all_users_dict(self.db)
         
@@ -184,9 +187,9 @@ class StudentService:
 
     def get_batch_students(self, batch_id: int) -> List[GetMappedBatchStudentResponse]:
         results = (
-            self.db.query(Student, StudentBatch)
-            .join(StudentBatch, Student.id == StudentBatch.student_id)
-            .filter(StudentBatch.batch_id == batch_id)
+            self.db.query(Student, BatchStudent)
+            .join(BatchStudent, Student.id == BatchStudent.student_id)
+            .filter(BatchStudent.batch_id == batch_id)
             .all()
         )
 

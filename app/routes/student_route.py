@@ -21,7 +21,7 @@ from app.models.student_models import (
 )
 from app.services.student_service import StudentService
 
-router = APIRouter(prefix="/students", tags=["Student Management Service"])
+router = APIRouter(prefix="/students", tags=["STUDENT MANAGEMENT SERVICE"])
 
 
 @router.post(
