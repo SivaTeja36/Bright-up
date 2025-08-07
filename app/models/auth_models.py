@@ -6,12 +6,9 @@ from pydantic import (
 
 
 class LoginRequest(BaseModel):
-    userName: EmailStr
+    email: EmailStr
     password: str
 
+
 class LoginResponse(BaseModel):
-    access_token: str
-    name: str
-    role: str
-    id: int
-    contact: str
+    token: str

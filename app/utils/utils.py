@@ -2,6 +2,7 @@ import base64
 from pathlib import Path
 import random
 import string
+
 from app.utils.constants import (
     ATTACHMENT_FOLDER_NAME, 
     TEMPLATE_FOLDER_NAME

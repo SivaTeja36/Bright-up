@@ -20,42 +20,67 @@ from app.utils.auth_dependencies import (
     ALGORITHM,
     SECRET_KEY,
 )
-from app.utils.constants import USER_NOT_FOUND
+from app.utils.constants import (
+    INCORRECT_PASSWORD, 
+    USER_NOT_FOUND
+)
+
 
 @dataclass
 class AuthService:
-    user_serivce: UserService = Depends(UserService)
+    user_service: UserService = Depends(UserService)
     
     def create_claims(self, user: User):
         claims = {
-                "sub": str(user.username),
-                "role": user.role,
+                "id": user.id,
                 "name": user.name,
-                "contact": user.contact,
-                "user_id": user.id,
+                "email": user.email,
+                "role": user.role,
+                "phone_number": user.phone_number,
                 "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
             }
         return claims
+    
+    def generate_token_response(self, claims: dict) -> LoginResponse:
+        """
+            Generate JWT token and return the login response.
+        """
+        try:
+            token = jwt.encode(
+                claims=claims, 
+                key=SECRET_KEY, 
+                algorithm=ALGORITHM
+            )
+            return LoginResponse(
+                token=token,
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=str(e)
+            )
 
 
-    def login(self, request: LoginRequest):
-        user = self.user_serivce.validate_user(request.userName, request.password)
-
-        if user and user.verify_password(request.password):
-            claims = self.create_claims(user)
-            try:
-                token = jwt.encode(claims, SECRET_KEY, algorithm=ALGORITHM)
-                return LoginResponse(
-                    access_token=token,
-                    name=user.name,
-                    role=user.role,
-                    contact=user.contact,
-                    id=user.id,
+    def login(self, request: LoginRequest) -> LoginResponse:
+        """
+            Authenticate a user and generate a JWT token upon successful login.
+        """
+        user = self.user_service.get_active_user_by_email(request.email)
+        
+        if user:
+            if user.verify_password(request.password):
+                claims = self.create_claims(user)
+                
+                return self.generate_token_response(
+                    claims=claims
                 )
-            except Exception as e:
-                print(e)
-                raise e
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail=USER_NOT_FOUND
-        )
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=INCORRECT_PASSWORD
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=USER_NOT_FOUND
+            )
