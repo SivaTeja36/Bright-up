@@ -33,8 +33,16 @@ class GetUserDetailsResponse(BaseModel):
     is_active: bool
 
 
-class CurrentContextUser():
+class CurrentContextUser:
     id: int
     name: str
     email: str
     role: str
+
+
+class UserInfoResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    role: str
+        

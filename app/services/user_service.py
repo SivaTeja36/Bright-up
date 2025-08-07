@@ -2,7 +2,8 @@ from typing import Dict, List, Tuple
 
 from dataclasses import dataclass
 from fastapi import (
-    Depends, 
+    Depends,
+    Request, 
     status,
     HTTPException
 )
@@ -14,7 +15,8 @@ from app.entities.user import User
 from app.models.user_models import (
     UserCreationRequest, 
     UserCreationResponse,
-    GetUserDetailsResponse
+    GetUserDetailsResponse,
+    UserInfoResponse
 )
 from app.utils.constants import (
     EMAIL_ALREADY_EXISTS,
@@ -228,3 +230,11 @@ class UserService:
 
         users = get_all_users() 
         return self.get_user_response(user, users)
+    
+    def get_user_info(self, request_state: Request):
+        return UserInfoResponse(
+            id=request_state.state.user.id,
+            name=request_state.state.user.name,
+            email=request_state.state.user.email,
+            role=request_state.state.user.role.capitalize()
+        )

@@ -16,7 +16,8 @@ from app.models.base_response_model import (
 from app.models.user_models import (
     UserCreationRequest, 
     UserCreationResponse,
-    GetUserDetailsResponse
+    GetUserDetailsResponse,
+    UserInfoResponse
 )
 from app.services.user_service import UserService
 from app.utils.constants import UPDATED_AT
@@ -45,7 +46,7 @@ async def create_user(
 @router.get(
     "", 
     response_model=GetApiResponse[List[GetUserDetailsResponse]], 
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_200_OK
 )
 async def get_all_users( 
     search: Optional[str] = Query(default=None),
@@ -76,12 +77,24 @@ async def get_all_users(
 
 
 @router.get(
-    "/{user_id}", 
+    "/data/{user_id}", 
     response_model=ApiResponse[GetUserDetailsResponse], 
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_200_OK
 )
 async def get_user_by_id(
     user_id: int, 
     service: UserService = Depends(UserService)
 ) -> ApiResponse[GetUserDetailsResponse]:
     return ApiResponse(data=service.get_user_by_id(user_id))
+
+
+@router.get(
+    "/info", 
+    response_model=ApiResponse[UserInfoResponse], 
+    status_code=status.HTTP_200_OK
+)
+async def get_user_info(
+    request_state: Request,
+    service: UserService = Depends(UserService)
+) -> ApiResponse[UserInfoResponse]:
+    return ApiResponse(data=service.get_user_info(request_state))
