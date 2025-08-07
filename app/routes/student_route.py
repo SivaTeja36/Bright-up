@@ -38,7 +38,7 @@ async def create_student(
     """
         Create a new student.
     """
-    logged_in_user_id = request_state.state.user.user_id
+    logged_in_user_id = request_state.state.user.id
     return ApiResponse(data=service.create_student(request, logged_in_user_id))
 
 
@@ -88,7 +88,7 @@ async def update_student_by_id(
     """
         Update student by id.
     """
-    logged_in_user_id = request_state.state.user.user_id
+    logged_in_user_id = request_state.state.user.id
     return ApiResponse(data=service.update_student_by_id(student_id, request, logged_in_user_id))
 
 
@@ -120,7 +120,7 @@ async def map_student_to_batch(
     request: MapStudentToBatchRequest,
     service: StudentService = Depends(StudentService)
 ) -> ApiResponse[SuccessMessageResponse]:
-    logged_in_user_id = request_state.state.user.user_id
+    logged_in_user_id = request_state.state.user.id
     return ApiResponse(data=service.map_student_to_batch(student_id, request, logged_in_user_id))
 
 
@@ -162,7 +162,7 @@ async def update_batch_student_by_id(
     request: UpdatedBatchStudentRequest,
     service: StudentService = Depends(StudentService)
 ) -> ApiResponse[SuccessMessageResponse]:
-    logged_in_user_id = request_state.state.user.user_id
+    logged_in_user_id = request_state.state.user.id
     return ApiResponse(data=service.update_batch_student_by_id(mapping_id, request, logged_in_user_id))
 
 

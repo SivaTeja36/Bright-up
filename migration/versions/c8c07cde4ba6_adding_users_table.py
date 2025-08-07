@@ -10,7 +10,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import text
 
-from app.utils.enums import Roles
+from app.utils.enums import GenderTypes, Roles
 from app.utils.hasher import Hasher
 
 
@@ -27,6 +27,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
     sa.Column('email', sa.String(length=100), nullable=False),
+    sa.Column('gender', sa.Integer(), nullable=False),
     sa.Column('password', sa.String(length=200), nullable=False),
     sa.Column('phone_number', sa.String(length=20), nullable=False),
     sa.Column('role', sa.Integer(), nullable=False),
@@ -48,17 +49,18 @@ def upgrade() -> None:
     conn.execute(
             text("""
                 INSERT INTO users (
-                    name, email, password, phone_number, role, created_at, created_by, updated_at, 
+                    name, email, gender, password, phone_number, role, created_at, created_by, updated_at, 
                     updated_by, is_active
                 )
                 VALUES (
-                    :name, :email, :password, :phone_number, :role, :created_at, :created_by, 
+                    :name, :email, :gender, :password, :phone_number, :role, :created_at, :created_by, 
                     :updated_at, :updated_by, :is_active
                 )
             """),
         {
             "name": 'Siva Teja',
             "email": 'vantasivateja@gmail.com',
+            "gender": GenderTypes.MALE,
             "password": Hasher.get_password_hash("String@123"),
             "phone_number": '1234567890',
             "role": Roles.ADMIN.value,

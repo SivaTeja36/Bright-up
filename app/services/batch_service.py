@@ -65,7 +65,7 @@ class BatchService:
             syllabus_ids=list(set(request.syllabus_ids)),
             start_date=request.start_date,
             end_date=request.end_date,
-            mentor_name=request.mentor_name,
+            mentor=request.mentor,
             created_by=logged_in_user_id,
             updated_by=logged_in_user_id
         )
@@ -94,7 +94,7 @@ class BatchService:
             syllabus=syllabus,
             start_date=batch.start_date,
             end_date=batch.end_date,
-            mentor_name=batch.mentor_name,
+            mentor=batch.mentor,
             created_at=batch.created_at,
             created_by=users.get(batch.created_by),
             updated_at=batch.updated_at,
@@ -132,7 +132,7 @@ class BatchService:
         batch.syllabus_ids = list(set(request.syllabus_ids))
         batch.start_date = request.start_date
         batch.end_date = request.end_date
-        batch.mentor_name = request.mentor_name
+        batch.mentor = request.mentor
         batch.updated_at = func.now()
         batch.updated_by = logged_in_user_id
         batch.is_active = request.is_active
@@ -232,7 +232,7 @@ class BatchService:
         batch = get_batch(self.db, batch_id)
         validate_data_not_found(batch, BATCH_NOT_FOUND)
         
-        schedule = get_class_schedule_by_id(self.db, schedule_id)
+        schedule = get_class_schedule_by_id(self.db, schedule_id, batch_id)
         validate_data_not_found(schedule, CLASS_SCHEDULE_NOT_FOUND)
 
         self.validate_update_fields(schedule, request, schedule.batch_id)
@@ -247,7 +247,10 @@ class BatchService:
         return SuccessMessageResponse(message=CLASS_SCHEDULE_UPDATED_SUCCESSFULLY)
 
     def delete_schedule_by_id(self, schedule_id: int, batch_id: int) -> SuccessMessageResponse:
-        schedule = get_class_schedule_by_id(self.db, schedule_id)
+        batch = get_batch(self.db, batch_id)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
+
+        schedule = get_class_schedule_by_id(self.db, schedule_id, batch_id)
         validate_data_not_found(schedule, CLASS_SCHEDULE_NOT_FOUND)
 
         self.db.delete(schedule)

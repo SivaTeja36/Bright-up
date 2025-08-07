@@ -15,7 +15,7 @@ class Student(Base):
     passout_year: int = sa.Column(sa.Integer, nullable=False) # type: ignore
     city: str = sa.Column(sa.String(100), nullable=False) # type: ignore
     state: str = sa.Column(sa.String(100), nullable=False) # type: ignore
-    referred_by: int = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=False) # type: ignore
+    referral_by: int = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=False) # type: ignore
     created_at: datetime = sa.Column(sa.DateTime, nullable=False, default=sa.func.now()) # type: ignore
     created_by: int = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=False) # type: ignore
     updated_at: datetime = sa.Column(sa.DateTime, nullable=False, default=sa.func.now()) # type: ignore
