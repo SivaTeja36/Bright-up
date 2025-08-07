@@ -8,6 +8,7 @@ from pydantic import (
 class UserCreationRequest(BaseModel):
     name: str
     email: EmailStr
+    gender: str
     password: str
     role: str
     phone_number: str
@@ -22,6 +23,7 @@ class GetUserDetailsResponse(BaseModel):
     id: int
     name: str 
     email: str 
+    gender: str
     phone_number: str
     role: str
     created_at: datetime

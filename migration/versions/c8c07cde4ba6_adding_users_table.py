@@ -60,7 +60,7 @@ def upgrade() -> None:
         {
             "name": 'Siva Teja',
             "email": 'vantasivateja@gmail.com',
-            "gender": GenderTypes.MALE,
+            "gender": GenderTypes.MALE.value,
             "password": Hasher.get_password_hash("String@123"),
             "phone_number": '1234567890',
             "role": Roles.ADMIN.value,

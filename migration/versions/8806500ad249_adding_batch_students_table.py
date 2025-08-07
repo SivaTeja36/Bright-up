@@ -33,7 +33,7 @@ def upgrade() -> None:
     sa.Column('updated_by', sa.Integer(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['referred_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['referral_by'], ['users.id'], ),
     sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -56,7 +56,7 @@ def upgrade() -> None:
     sa.Column('updated_by', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['batch_id'], ['batches.id'], ),
     sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['referral_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['referral_by'], ['users.id'], ),
     sa.ForeignKeyConstraint(['student_id'], ['students.id'], ),
     sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
