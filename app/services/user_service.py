@@ -80,6 +80,7 @@ class UserService:
         user = User(
             name=request.name,
             email=request.email,
+            gender=request.gender,
             password=request.password,
             role=request.role,
             phone_number=request.phone_number,
@@ -161,7 +162,8 @@ class UserService:
         return GetUserDetailsResponse(
             id=user.id,
             name=user.name, 
-            email=user.email, 
+            email=user.email,
+            gender=user.gender, 
             phone_number=user.phone_number,
             role=user.role,
             created_at=user.created_at,

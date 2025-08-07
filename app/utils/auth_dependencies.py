@@ -55,7 +55,6 @@ def __verify_jwt(token: str):
         return cur_user
 
 async def verify_auth_token(request: Request):
-    print("Executing")
     if (
         "login" not in request.url.path
         and "refresh" not in request.url.path
@@ -63,7 +62,6 @@ async def verify_auth_token(request: Request):
         auth: str = request.headers.get(AUTHORIZATION) or ""
         
         try:
-            print(__verify_jwt(token=auth))
             request.state.user = __verify_jwt(token=auth)
         except Exception:
             raise HTTPException(
