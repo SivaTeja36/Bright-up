@@ -14,8 +14,9 @@ from app.models.base_response_model import (
     GetApiResponse
 )
 from app.models.user_models import (
+    UpdateUserRequest,
     UserCreationRequest, 
-    UserCreationResponse,
+    UserResponse,
     GetUserDetailsResponse,
     UserInfoResponse
 )
@@ -28,14 +29,14 @@ router = APIRouter(prefix="/users", tags=["USER MANAGEMENT SERVICE"])
 
 @router.post(
     "", 
-    response_model=ApiResponse[UserCreationResponse], 
+    response_model=ApiResponse[UserResponse], 
     status_code=status.HTTP_201_CREATED
 )
 async def create_user(
     request_state: Request,
     request: UserCreationRequest, 
     service: UserService = Depends(UserService)
-) -> ApiResponse[UserCreationResponse]:
+) -> ApiResponse[UserResponse]:
     return ApiResponse(data=service.create_user(
             logged_in_user_id=request_state.state.user.id, 
             request=request
@@ -82,10 +83,29 @@ async def get_all_users(
     status_code=status.HTTP_200_OK
 )
 async def get_user_by_id(
-    user_id: int, 
+    user_id: PositiveInt, 
     service: UserService = Depends(UserService)
 ) -> ApiResponse[GetUserDetailsResponse]:
     return ApiResponse(data=service.get_user_by_id(user_id))
+
+
+@router.put(
+    "/data/{user_id}", 
+    response_model=ApiResponse[UserResponse], 
+    status_code=status.HTTP_200_OK
+)
+async def update_user_by_id(
+    request_state: Request,
+    user_id: PositiveInt, 
+    request: UpdateUserRequest,
+    service: UserService = Depends(UserService)
+) -> ApiResponse[UserResponse]:
+    return ApiResponse(data=service.update_user_by_id(
+            logged_in_user_id=request_state.state.user.id, 
+            user_id=user_id,
+            request=request
+        )
+    )
 
 
 @router.get(

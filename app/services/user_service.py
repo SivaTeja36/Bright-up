@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict, List, Tuple
 
 from dataclasses import dataclass
@@ -13,8 +14,9 @@ from sqlalchemy.orm import Session
 from app.connectors.database_connector import get_db
 from app.entities.user import User
 from app.models.user_models import (
+    UpdateUserRequest,
     UserCreationRequest, 
-    UserCreationResponse,
+    UserResponse,
     GetUserDetailsResponse,
     UserInfoResponse
 )
@@ -22,7 +24,8 @@ from app.utils.constants import (
     EMAIL_ALREADY_EXISTS,
     PHONE_NUMBER_ALREADY_EXISTS,
     USER_CREATED_SUCCESSFULLY,
-    USER_NOT_FOUND
+    USER_NOT_FOUND,
+    USER_UPDATED_SUCCESSFULLY
 )
 from app.utils.db_queries import (
     get_user_by_email,
@@ -75,7 +78,7 @@ class UserService:
         self, 
         logged_in_user_id: int, 
         request: UserCreationRequest
-    ) -> UserCreationResponse:
+    ) -> UserResponse:
         self._validate_email_not_exists(request.email)
         self._validate_phone_not_exists(request.phone_number)
 
@@ -93,7 +96,7 @@ class UserService:
         self.db.add(user)
         self.db.commit()
 
-        return UserCreationResponse(
+        return UserResponse(
             id=user.id,
             message=USER_CREATED_SUCCESSFULLY
         )
@@ -231,6 +234,34 @@ class UserService:
         users = get_all_users() 
         return self.get_user_response(user, users)
     
+    def update_user_by_id(
+        self, 
+        logged_in_user_id: int, 
+        user_id: int, 
+        request: UpdateUserRequest
+    ) -> UserResponse:
+        user = get_user_by_id(self.db, user_id)
+        self.validate_user_details(user)
+        
+        if request.is_active is not None:
+            user.is_active = request.is_active
+            user.updated_at = datetime.now()
+            user.updated_by = logged_in_user_id
+        else:
+            user.name = request.name
+            user.gender = request.gender
+            user.role = request.role
+            user.phone_number = request.phone_number
+            user.updated_at = datetime.now()
+            user.updated_by = logged_in_user_id
+
+        self.db.commit()
+        
+        return UserResponse(
+            id=user_id,
+            message=USER_UPDATED_SUCCESSFULLY
+        )
+
     def get_user_info(self, request_state: Request):
         return UserInfoResponse(
             id=request_state.state.user.id,

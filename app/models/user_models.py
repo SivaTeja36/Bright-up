@@ -14,7 +14,7 @@ class UserCreationRequest(BaseModel):
     phone_number: str
 
 
-class UserCreationResponse(BaseModel):
+class UserResponse(BaseModel):
     id: int
     message: str
 
@@ -31,6 +31,14 @@ class GetUserDetailsResponse(BaseModel):
     updated_at: datetime
     updated_by: Optional[str] = None
     is_active: bool
+
+
+class UpdateUserRequest(BaseModel):
+    name: str
+    gender: str
+    role: str
+    phone_number: str
+    is_active: Optional[bool] = None
 
 
 class CurrentContextUser:
