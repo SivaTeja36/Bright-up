@@ -14,6 +14,7 @@ from app.models.base_response_model import (
     GetApiResponse
 )
 from app.models.user_models import (
+    UpdateUserPassword,
     UpdateUserRequest,
     UserCreationRequest, 
     UserResponse,
@@ -103,6 +104,22 @@ async def update_user_by_id(
     return ApiResponse(data=service.update_user_by_id(
             logged_in_user_id=request_state.state.user.id, 
             user_id=user_id,
+            request=request
+        )
+    )
+
+@router.put(
+    "/password", 
+    response_model=ApiResponse[UserResponse], 
+    status_code=status.HTTP_200_OK
+)
+async def update_user_password(
+    request_state: Request,
+    request: UpdateUserPassword,
+    service: UserService = Depends(UserService)
+) -> ApiResponse[UserResponse]:
+    return ApiResponse(data=service.update_user_password(
+            logged_in_user_id=request_state.state.user.id, 
             request=request
         )
     )

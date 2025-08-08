@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.connectors.database_connector import get_db
 from app.entities.user import User
 from app.models.user_models import (
+    UpdateUserPassword,
     UpdateUserRequest,
     UserCreationRequest, 
     UserResponse,
@@ -25,6 +26,7 @@ from app.utils.constants import (
     PHONE_NUMBER_ALREADY_EXISTS,
     USER_CREATED_SUCCESSFULLY,
     USER_NOT_FOUND,
+    USER_PASSWORD_UPDATED_SUCCESSFULLY,
     USER_UPDATED_SUCCESSFULLY
 )
 from app.utils.db_queries import (
@@ -260,6 +262,25 @@ class UserService:
         return UserResponse(
             id=user_id,
             message=USER_UPDATED_SUCCESSFULLY
+        )
+    
+    def update_user_password(
+        self, 
+        logged_in_user_id: int, 
+        request: UpdateUserPassword
+    ) -> UserResponse:
+        user = get_user_by_id(self.db, logged_in_user_id)
+        self.validate_user_details(user)
+
+        user.password = request.password
+        user.updated_at = datetime.now()
+        user.updated_by = logged_in_user_id
+
+        self.db.commit()
+
+        return UserResponse(
+            id=logged_in_user_id,
+            message=USER_PASSWORD_UPDATED_SUCCESSFULLY
         )
 
     def get_user_info(self, request_state: Request):

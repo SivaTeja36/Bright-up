@@ -1,12 +1,13 @@
 from datetime import datetime
 
-from pydantic import field_validator
 import sqlalchemy as sa
 
 from app.connectors.database_connector import Base
-from app.utils.enums import GenderTypes, Roles
+from app.utils.enums import (
+    GenderTypes, 
+    Roles
+)
 from app.utils.hasher import Hasher
-from app.utils.validation import validate_password
 
 class User(Base):
     __tablename__ = "users"
@@ -49,8 +50,4 @@ class User(Base):
         self.__password = Hasher.get_password_hash(password)
     
     def verify_password(self, password: str):
-        return Hasher.verify_password(password,self.__password)
-    
-    @field_validator("password")
-    def validate_user_creation_password(cls, password: str):
-        return validate_password(password)
+        return Hasher.verify_password(password, self.__password)

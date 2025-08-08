@@ -2,8 +2,11 @@ from datetime import datetime
 from typing import Optional
 from pydantic import (
     BaseModel, 
-    EmailStr
+    EmailStr,
+    field_validator
 )
+
+from app.utils.validation import validate_password
 
 class UserCreationRequest(BaseModel):
     name: str
@@ -12,6 +15,10 @@ class UserCreationRequest(BaseModel):
     password: str
     role: str
     phone_number: str
+
+    @field_validator("password")
+    def validate_user_creation_password(cls, password: str):
+        return validate_password(password)
 
 
 class UserResponse(BaseModel):
@@ -39,6 +46,14 @@ class UpdateUserRequest(BaseModel):
     role: str
     phone_number: str
     is_active: Optional[bool] = None
+
+
+class UpdateUserPassword(BaseModel):
+    password: str
+
+    @field_validator("password")
+    def validate_user_creation_password(cls, password: str):
+        return validate_password(password)
 
 
 class CurrentContextUser:
