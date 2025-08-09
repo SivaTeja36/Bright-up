@@ -172,7 +172,7 @@ class UserService:
             email=user.email,
             gender=user.gender, 
             phone_number=user.phone_number,
-            role=user.role,
+            role=user.role.capitalize(),
             created_at=user.created_at,
             created_by=users.get(user.created_by),
             updated_at=user.updated_at,

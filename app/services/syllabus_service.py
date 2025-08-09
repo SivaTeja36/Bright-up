@@ -1,9 +1,14 @@
 from dataclasses import dataclass
-from fastapi import Depends
-from sqlalchemy import func
+from fastapi import (
+    Depends, 
+    HTTPException, 
+    status
+)
+from sqlalchemy import func, exists
 from sqlalchemy.orm import Session
 
 from app.connectors.database_connector import get_db
+from app.entities.batch import Batch
 from app.entities.syllabus import Syllabus
 from app.models.base_response_model import SuccessMessageResponse
 from app.models.syllabus_models import (
@@ -11,6 +16,7 @@ from app.models.syllabus_models import (
     SyllabusRequest
 )
 from app.utils.constants import (
+    CANNOT_DELETE_AS_THE_SYLLABUS_IS_LINKED_TO_A_BATCH,
     SYLLABUS_CREATED_SUCCESSFULLY,
     SYLLABUS_DELETED_SUCCESSFULLY,
     SYLLABUS_NAME_ALREADY_EXISTS,
@@ -113,17 +119,29 @@ class SyllabusService:
         return SuccessMessageResponse(
             message=SYLLABUS_CREATED_SUCCESSFULLY
         )     
+    
+    def _validate_syllabus_linkage(self, syllabus_id: int):
+        is_linked = self.db.query(
+            exists().where(Batch.syllabus_ids.any(syllabus_id))
+        ).scalar()
+
+        if is_linked:   
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=CANNOT_DELETE_AS_THE_SYLLABUS_IS_LINKED_TO_A_BATCH
+            )
         
     def delete_syllabus_by_id(
-        self, 
+        self,
         syllabus_id: int
     ) -> SuccessMessageResponse:
         syllabus = get_syllabus(self.db, syllabus_id)
         validate_data_not_found(syllabus, SYLLABUS_NOT_FOUND)
-        
+        self._validate_syllabus_linkage(syllabus_id)
+
         self.db.delete(syllabus)
         self.db.commit()
-        
+
         return SuccessMessageResponse(
             message=SYLLABUS_DELETED_SUCCESSFULLY
-        )    
+        )
