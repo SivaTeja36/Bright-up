@@ -1,17 +1,21 @@
-from datetime import date, datetime
+from datetime import (
+    datetime, 
+    time
+)
 
 import sqlalchemy as sa
 
 from app.connectors.database_connector import Base
 
 
-class Batch(Base):
-    __tablename__ = "batches"
+class BatchClassSchedule(Base):
+    __tablename__ = "batch_class_schedules"
 
     id: int = sa.Column(sa.Integer, primary_key=True, nullable=False) # type: ignore
-    syllabus_ids: list = sa.Column(sa.ARRAY(sa.Integer), nullable=True) # type: ignore
-    start_date: date = sa.Column(sa.Date, nullable=False) # type: ignore
-    end_date: date = sa.Column(sa.Date, nullable=False) # type: ignore
+    batch_id: int = sa.Column(sa.Integer, sa.ForeignKey("batches.id"), nullable=False) # type: ignore
+    day: str = sa.Column(sa.String(10), nullable=False) # type: ignore
+    start_time: time = sa.Column(sa.Time, nullable=False) # type: ignore
+    end_time: time = sa.Column(sa.Time, nullable=False) # type: ignore
     created_at: datetime = sa.Column(sa.DateTime, nullable=False, default=sa.func.now()) # type: ignore
     created_by: int = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=False) # type: ignore
     updated_at: datetime = sa.Column(sa.DateTime, nullable=False, default=sa.func.now()) # type: ignore

@@ -1,8 +1,8 @@
 """adding batch table
 
-Revision ID: 8eded4419b0a
+Revision ID: c7575e0afa87
 Revises: 2762bce72eca
-Create Date: 2025-08-07 12:36:24.504598
+Create Date: 2025-08-10 10:38:06.959879
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '8eded4419b0a'
+revision = 'c7575e0afa87'
 down_revision = '2762bce72eca'
 branch_labels = None
 depends_on = None
@@ -23,14 +23,12 @@ def upgrade() -> None:
     sa.Column('syllabus_ids', sa.ARRAY(sa.Integer()), nullable=True),
     sa.Column('start_date', sa.Date(), nullable=False),
     sa.Column('end_date', sa.Date(), nullable=False),
-    sa.Column('mentor', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('created_by', sa.Integer(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.Column('updated_by', sa.Integer(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['mentor'], ['users.id'], ),
     sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

@@ -4,8 +4,8 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.entities.batch import Batch
-from app.entities.class_schedule import ClassSchedule
-from app.entities.student import Student
+from app.entities.batch_class_schedule import ClassSchedule
+from app.entities.user_education import Student
 from app.entities.batch_student import BatchStudent
 from app.entities.syllabus import Syllabus
 from app.entities.user import User

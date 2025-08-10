@@ -7,7 +7,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.orm import Session
 
 from app.connectors.database_connector import get_db
-from app.entities.student import Student
+from app.entities.user_education import Student
 from app.entities.batch_student import BatchStudent
 from app.entities.user import User
 from app.models.base_response_model import SuccessMessageResponse

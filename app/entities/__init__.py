@@ -2,6 +2,8 @@ from app.connectors.database_connector import Base
 from .user import User
 from .syllabus import Syllabus
 from .batch import Batch
-from .student import Student
+from .user_education import UserEducation
 from .batch_student import BatchStudent
-from .class_schedule import ClassSchedule
+from .batch_mentor import BatchMentor
+from .batch_student_payment import BatchStudentPayment
+from .batch_class_schedule import BatchClassSchedule

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.connectors.database_connector import get_db
 from app.entities.batch import Batch
-from app.entities.class_schedule import ClassSchedule
+from app.entities.batch_class_schedule import ClassSchedule
 from app.entities.syllabus import Syllabus
 from app.models.base_response_model import (
     SuccessMessageResponse,  
