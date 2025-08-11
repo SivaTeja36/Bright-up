@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.connectors.database_connector import get_db
 from app.entities.batch import Batch
 from app.entities.batch_class_schedule import BatchClassSchedule
+from app.entities.batch_mentor import BatchMentor
 from app.entities.syllabus import Syllabus
 from app.models.base_response_model import (
     SuccessMessageResponse,  
@@ -50,6 +51,38 @@ from app.utils.validation import (
 @dataclass
 class BatchService:
     db: Session = Depends(get_db)
+
+    def add_batch(self, request: BatchRequest, logged_in_user_id: int) -> Batch:
+        new_batch = Batch(
+            name=request.name,
+            syllabus_ids=list(set(request.syllabus_ids)),
+            start_date=request.start_date,
+            end_date=request.end_date,
+            created_by=logged_in_user_id,
+            updated_by=logged_in_user_id
+        )
+        
+        self.db.add(new_batch)
+        self.db.commit()
+
+        return new_batch
+    
+    def add_batch_mentor(
+        self, 
+        new_batch: Batch, 
+        request: BatchRequest, 
+        logged_in_user_id: int
+    ) -> None:
+        batch_mentor = BatchMentor(
+            batch_id=new_batch.id,
+            mentor_id=request.mentor_id,
+            created_by=logged_in_user_id,
+            updated_by=logged_in_user_id
+        )
+
+        self.db.add(batch_mentor)
+        self.db.commit()
+      
     
     def create_batch(
         self, 
@@ -61,18 +94,9 @@ class BatchService:
         if existing_syllabus_ids != len(request.syllabus_ids):
             validate_data_not_found(False, ONE_OR_MORE_SYLLABUS_NOT_FOUND)
         
-        new_batch = Batch(
-            syllabus_ids=list(set(request.syllabus_ids)),
-            start_date=request.start_date,
-            end_date=request.end_date,
-            mentor=request.mentor,
-            created_by=logged_in_user_id,
-            updated_by=logged_in_user_id
-        )
-        
-        self.db.add(new_batch)
-        self.db.commit()
-      
+        new_batch = self.add_batch(request, logged_in_user_id)
+        self.add_batch_mentor(new_batch, request, logged_in_user_id)
+
         return SuccessMessageResponse(
             message=BATCH_CREATED_SUCCESSFULLY
         )
@@ -83,6 +107,7 @@ class BatchService:
     ) -> GetBatchResponse:
         users = get_all_users_dict(self.db)
         syllabus_details = self.db.query(Syllabus).filter(Syllabus.id.in_(batch.syllabus_ids)).all()
+        mentor = self.db.query(BatchMentor).filter(BatchMentor.batch_id == batch.id).first()
         
         syllabus = [
             {syllabus.name: syllabus.topics}
@@ -91,10 +116,11 @@ class BatchService:
         
         return GetBatchResponse(
             id=batch.id,
+            name=batch.name,
             syllabus=syllabus,
             start_date=batch.start_date,
             end_date=batch.end_date,
-            mentor=batch.mentor,
+            mentor=users.get(mentor.mentor_id),
             created_at=batch.created_at,
             created_by=users.get(batch.created_by),
             updated_at=batch.updated_at,

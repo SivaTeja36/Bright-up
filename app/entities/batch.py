@@ -9,6 +9,7 @@ class Batch(Base):
     __tablename__ = "batches"
 
     id: int = sa.Column(sa.Integer, primary_key=True, nullable=False) # type: ignore
+    name: str = sa.Column(sa.String(50), nullable=False)
     syllabus_ids: list = sa.Column(sa.ARRAY(sa.Integer), nullable=True) # type: ignore
     start_date: date = sa.Column(sa.Date, nullable=False) # type: ignore
     end_date: date = sa.Column(sa.Date, nullable=False) # type: ignore

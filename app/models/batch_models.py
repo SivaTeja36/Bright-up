@@ -14,14 +14,17 @@ from app.utils.enums import Days
 
 
 class BatchRequest(BaseModel):
+    name: str
     syllabus_ids: Optional[List[int]] = None
     start_date: date
     end_date: date
+    mentor_id: int
     is_active: Optional[bool] = True
     
 
 class GetBatchResponse(BaseModel):
     id: int 
+    name: str
     syllabus: List[dict] = None
     start_date: date
     end_date: date
