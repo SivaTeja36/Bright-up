@@ -33,5 +33,6 @@ class OrderByTypes(StrEnum):
     DESC = "desc"    
 
 class UserEducationStatus(StrEnum):
-    ON_GOING = "Ongoing"
+    ON_GOING = "On Going"
     COMPLETED = "Completed"
+    DROPPED = "Dropped"
