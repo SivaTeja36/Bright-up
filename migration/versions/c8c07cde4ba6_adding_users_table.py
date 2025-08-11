@@ -10,7 +10,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import text
 
-from app.utils.enums import GenderTypes, Roles
+from app.utils.enums import GenderTypes, Roles, UserEducationStatus
 from app.utils.hasher import Hasher
 
 
@@ -43,20 +43,43 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_index(op.f('ix_users_password'), 'users', ['password'], unique=False)
+
+    op.create_table('user_education',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('degree', sa.String(length=100), nullable=False),
+    sa.Column('specialization', sa.String(length=100), nullable=False),
+    sa.Column('start_year', sa.Integer(), nullable=False),
+    sa.Column('end_year', sa.Integer(), nullable=True),
+    sa.Column('current_year_of_study', sa.Integer(), nullable=True),
+    sa.Column('status', sa.String(length=30), nullable=False),
+    sa.Column('city', sa.String(length=100), nullable=False),
+    sa.Column('state', sa.String(length=100), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('created_by', sa.Integer(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_by', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     
     conn = op.get_bind()
-    # Insert a default user
-    conn.execute(
-            text("""
-                INSERT INTO users (
-                    name, email, gender, password, phone_number, role, created_at, created_by, updated_at, 
-                    updated_by, is_active
-                )
-                VALUES (
-                    :name, :email, :gender, :password, :phone_number, :role, :created_at, :created_by, 
-                    :updated_at, :updated_by, :is_active
-                )
-            """),
+
+    # Insert default user
+    result = conn.execute(
+        text("""
+            INSERT INTO users (
+                name, email, gender, password, phone_number, role, created_at, created_by, updated_at, 
+                updated_by, is_active
+            )
+            VALUES (
+                :name, :email, :gender, :password, :phone_number, :role, :created_at, :created_by, 
+                :updated_at, :updated_by, :is_active
+            )
+            RETURNING id
+        """),
         {
             "name": 'Siva Teja',
             "email": 'vantasivateja@gmail.com',
@@ -71,6 +94,37 @@ def upgrade() -> None:
             "is_active": True
         }
     )
+
+    user_id = result.scalar()
+
+    # Insert default user education
+    conn.execute(
+        text("""
+            INSERT INTO user_education (
+                user_id, degree, specialization, start_year, end_year, current_year_of_study, status,
+                city, state, created_at, created_by, updated_at, updated_by
+            )
+            VALUES (
+                :user_id, :degree, :specialization, :start_year, :end_year, :current_year_of_study, :status,
+                :city, :state, :created_at, :created_by, :updated_at, :updated_by
+            )
+        """),
+        {
+            "user_id": user_id,
+            "degree": "B Tech",
+            "specialization": "Mechanical",
+            "start_year": 2018,
+            "end_year": 2022,
+            "current_year_of_study": None,
+            "status": UserEducationStatus.COMPLETED,
+            "city": "Kadapa",
+            "state": "Andra Pradesh",
+            "created_at": datetime.utcnow(),
+            "created_by": user_id,
+            "updated_at": datetime.utcnow(),
+            "updated_by": user_id
+        }
+    )
     # ### end Alembic commands ###
 
 
@@ -79,4 +133,5 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_users_password'), table_name='users')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
+    op.drop_table('user_education')
     # ### end Alembic commands ###

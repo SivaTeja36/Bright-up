@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.connectors.database_connector import get_db
 from app.entities.batch import Batch
-from app.entities.batch_class_schedule import ClassSchedule
+from app.entities.batch_class_schedule import BatchClassSchedule
 from app.entities.syllabus import Syllabus
 from app.models.base_response_model import (
     SuccessMessageResponse,  
@@ -132,7 +132,6 @@ class BatchService:
         batch.syllabus_ids = list(set(request.syllabus_ids))
         batch.start_date = request.start_date
         batch.end_date = request.end_date
-        batch.mentor = request.mentor
         batch.updated_at = func.now()
         batch.updated_by = logged_in_user_id
         batch.is_active = request.is_active
@@ -169,7 +168,7 @@ class BatchService:
             SCHEDULE_FOR_THIS_DAY_ALREADY_EXISTS_FOR_THIS_BATCH
         )
 
-        schedule = ClassSchedule(
+        schedule = BatchClassSchedule(
             batch_id=batch_id,
             day=request.day,
             start_time=request.start_time,
@@ -182,7 +181,7 @@ class BatchService:
         
         return SuccessMessageResponse(message=CLASS_SCHEDULE_CREATED_SUCCESSFULLY)
     
-    def get_class_schedule_reponse(self, class_schedule: ClassSchedule) -> GetClassScheduleResponse:
+    def get_class_schedule_reponse(self, class_schedule: BatchClassSchedule) -> GetClassScheduleResponse:
         user_dict = get_all_users_dict(self.db)
         
         return GetClassScheduleResponse(
@@ -207,7 +206,7 @@ class BatchService:
         
     def validate_update_fields(
         self, 
-        schedule: ClassSchedule, 
+        schedule: BatchClassSchedule, 
         request: UpdateClassScheduleRequest, 
         batch_id: int
     ) -> None:

@@ -13,10 +13,12 @@ from sqlalchemy.orm import Session
 
 from app.connectors.database_connector import get_db
 from app.entities.user import User
+from app.entities.user_education import UserEducation
 from app.models.user_models import (
     UpdateUserPassword,
     UpdateUserRequest,
-    UserCreationRequest, 
+    UserCreationRequest,
+    UserEducationResponse, 
     UserResponse,
     GetUserDetailsResponse,
     UserInfoResponse
@@ -32,7 +34,8 @@ from app.utils.constants import (
 from app.utils.db_queries import (
     get_user_by_email,
     get_user_by_id, 
-    get_user_by_phone_number
+    get_user_by_phone_number,
+    get_user_education_by_id
 )
 from app.utils.helpers import (
     apply_filter, 
@@ -74,16 +77,9 @@ class UserService:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=PHONE_NUMBER_ALREADY_EXISTS
-            )    
-   
-    def create_user(
-        self, 
-        logged_in_user_id: int, 
-        request: UserCreationRequest
-    ) -> UserResponse:
-        self._validate_email_not_exists(request.email)
-        self._validate_phone_not_exists(request.phone_number)
+            ) 
 
+    def add_user(self, request: UserCreationRequest, logged_in_user_id: int) -> User:
         user = User(
             name=request.name,
             email=request.email,
@@ -96,7 +92,43 @@ class UserService:
         )
 
         self.db.add(user)
+        self.db.commit()       
+
+        return user
+        
+    def add_user_education(
+        self, 
+        user_id: int, 
+        request: UserCreationRequest, 
+        logged_in_user_id: int
+    ) -> None:
+        user_education = UserEducation(
+            user_id=user_id,
+            degree=request.education.degree,
+            specialization=request.education.specialization,
+            start_year=request.education.start_year,
+            end_year=request.education.end_year,
+            current_year_of_study=request.education.current_year_of_study,
+            status=request.education.status,
+            city=request.education.city,
+            state=request.education.state,
+            created_by=logged_in_user_id,
+            updated_by=logged_in_user_id
+        ) 
+
+        self.db.add(user_education)
         self.db.commit()
+   
+    def create_user(
+        self, 
+        logged_in_user_id: int, 
+        request: UserCreationRequest
+    ) -> UserResponse:
+        self._validate_email_not_exists(request.email)
+        self._validate_phone_not_exists(request.phone_number)
+
+        user = self.add_user(request, logged_in_user_id)
+        self.add_user_education(user.id, request, logged_in_user_id)
 
         return UserResponse(
             id=user.id,
@@ -160,11 +192,34 @@ class UserService:
 
         return total_count, query.all()
     
+    def get_user_education_response(
+        self, 
+        user_education: UserEducation,
+        users: Dict[int, str]
+    ) -> UserEducationResponse:
+        return UserEducationResponse(
+            id=user_education.id, 
+            degree=user_education.degree, 
+            specialization=user_education.specialization, 
+            start_year=user_education.start_year, 
+            end_year=user_education.end_year, 
+            current_year_of_study=user_education.current_year_of_study,
+            status=user_education.status, 
+            city=user_education.city, 
+            state=user_education.state, 
+            created_at=user_education.created_at,
+            created_by=users.get(user_education.created_by),
+            updated_at=user_education.updated_at,
+            updated_by=users.get(user_education.updated_by),
+        )
+    
     def get_user_response(
         self, 
         user: User, 
         users: Dict[int, str]
     ) -> GetUserDetailsResponse:
+        user_education_details = get_user_education_by_id(self.db, user.id)
+        user_education = self.get_user_education_response(user_education_details, users)
 
         return GetUserDetailsResponse(
             id=user.id,
@@ -173,6 +228,7 @@ class UserService:
             gender=user.gender, 
             phone_number=user.phone_number,
             role=user.role.capitalize(),
+            education=user_education,
             created_at=user.created_at,
             created_by=users.get(user.created_by),
             updated_at=user.updated_at,
@@ -236,6 +292,36 @@ class UserService:
         users = get_all_users() 
         return self.get_user_response(user, users)
     
+    def update_user(
+        self, 
+        user: User, 
+        request: UpdateUserRequest, 
+        logged_in_user_id: int
+    ) -> None:
+        user.name = request.name
+        user.gender = request.gender
+        user.role = request.role
+        user.phone_number = request.phone_number
+        user.updated_at = datetime.now()
+        user.updated_by = logged_in_user_id
+    
+    def update_user_education(
+        self, 
+        user_education: UserEducation, 
+        request: UpdateUserRequest, 
+        logged_in_user_id: int
+    ) -> None:
+        user_education.degree = request.education.degree
+        user_education.specialization = request.education.specialization
+        user_education.start_year = request.education.start_year
+        user_education.end_year = request.education.end_year
+        user_education.current_year_of_study = request.education.current_year_of_study
+        user_education.status = request.education.status
+        user_education.city = request.education.city
+        user_education.state = request.education.state
+        user_education.updated_at = datetime.now()
+        user_education.updated_by = logged_in_user_id
+    
     def update_user_by_id(
         self, 
         logged_in_user_id: int, 
@@ -244,18 +330,15 @@ class UserService:
     ) -> UserResponse:
         user = get_user_by_id(self.db, user_id)
         self.validate_user_details(user)
+        user_education = get_user_education_by_id(self.db, user_id)
         
         if request.is_active is not None:
             user.is_active = request.is_active
             user.updated_at = datetime.now()
             user.updated_by = logged_in_user_id
         else:
-            user.name = request.name
-            user.gender = request.gender
-            user.role = request.role
-            user.phone_number = request.phone_number
-            user.updated_at = datetime.now()
-            user.updated_by = logged_in_user_id
+            self.update_user(user, request, logged_in_user_id)
+            self.update_user_education(user_education, request, logged_in_user_id)
 
         self.db.commit()
         

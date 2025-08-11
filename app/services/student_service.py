@@ -7,7 +7,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.orm import Session
 
 from app.connectors.database_connector import get_db
-from app.entities.user_education import Student
+from app.entities.user_education import UserEducation
 from app.entities.batch_student import BatchStudent
 from app.entities.user import User
 from app.models.base_response_model import SuccessMessageResponse
@@ -56,7 +56,7 @@ class StudentService:
         student_details = get_student_by_id(self.db, request.user_id)
         validate_data_exits(student_details, STUDENT_DETAILS_ALREADY_EXISTS)
 
-        new_student = Student(
+        new_student = UserEducation(
             user_id=request.user_id,
             degree=request.degree,
             specialization=request.specialization,
@@ -74,7 +74,7 @@ class StudentService:
     
     def get_student_response(
         self, 
-        student: Student,
+        student: UserEducation,
         users: Dict[int, str]
     ) -> GetStudentResponse:
         
@@ -83,15 +83,12 @@ class StudentService:
             name=users.get(student.user_id),
             degree=student.degree,
             specialization=student.specialization,
-            passout_year=student.passout_year,
             city=student.city,
             state=student.state,
-            referral_by=users.get(student.referral_by),
             created_at=student.created_at,
             created_by=users.get(student.created_by),
             updated_at=student.updated_at,
-            updated_by=users.get(student.updated_by),
-            is_active=student.is_active
+            updated_by=users.get(student.updated_by)
         )
         
     def get_all_students(self) -> List[GetStudentResponse]:
@@ -198,9 +195,9 @@ class StudentService:
         StudentUser = aliased(User)
 
         results = (
-            self.db.query(Student, StudentUser, BatchStudent)
-            .join(BatchStudent, Student.id == BatchStudent.student_id)
-            .join(StudentUser, Student.user_id == StudentUser.id)
+            self.db.query(UserEducation, StudentUser, BatchStudent)
+            .join(BatchStudent, UserEducation.id == BatchStudent.student_id)
+            .join(StudentUser, UserEducation.user_id == StudentUser.id)
             .filter(BatchStudent.batch_id == batch_id)
             .all()
         )

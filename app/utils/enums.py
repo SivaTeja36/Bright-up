@@ -25,10 +25,13 @@ class Days(StrEnum):
     Saturday = "Saturday"
     Sunday = "Sunday"
 
-
 class OrderByTypes(StrEnum):
     """
         Enumeration of sorting types.
     """
     ASC = "asc"
     DESC = "desc"    
+
+class UserEducationStatus(StrEnum):
+    ON_GOING = "Ongoing"
+    COMPLETED = "Completed"

@@ -17,7 +17,6 @@ class BatchRequest(BaseModel):
     syllabus_ids: Optional[List[int]] = None
     start_date: date
     end_date: date
-    mentor: int
     is_active: Optional[bool] = True
     
 

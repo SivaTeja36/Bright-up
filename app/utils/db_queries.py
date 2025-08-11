@@ -4,8 +4,8 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.entities.batch import Batch
-from app.entities.batch_class_schedule import ClassSchedule
-from app.entities.user_education import Student
+from app.entities.batch_class_schedule import BatchClassSchedule
+from app.entities.user_education import UserEducation
 from app.entities.batch_student import BatchStudent
 from app.entities.syllabus import Syllabus
 from app.entities.user import User
@@ -39,6 +39,13 @@ def get_user_by_phone_number(db: Session, phone_number: str):
         .filter(
             User.phone_number == phone_number
         ).first()
+    )
+
+def get_user_education_by_id(db: Session, user_id: int) -> UserEducation:
+    return (
+        db.query(UserEducation)
+        .filter(UserEducation.user_id == user_id)
+        .first()
     )
 
 # ---------------------- SYLLABUS QUERIES ----------------------:
@@ -82,25 +89,25 @@ def get_all_batches(db: Session) -> List[Batch]:
     return db.query(Batch).all()
 
 def get_batch_class_schedules(db: Session, batch_id: int):
-    return db.query(ClassSchedule).filter_by(batch_id=batch_id, is_active=True).all()
+    return db.query(BatchClassSchedule).filter_by(batch_id=batch_id, is_active=True).all()
 
-def get_class_schedule_by_batch_and_time(db: Session, batch_id: int, day: str, start_time: str) -> ClassSchedule:
+def get_class_schedule_by_batch_and_time(db: Session, batch_id: int, day: str, start_time: str) -> BatchClassSchedule:
     """
         Get class schedule by batch ID, day, and start time.
     """
-    return db.query(ClassSchedule).filter_by(
+    return db.query(BatchClassSchedule).filter_by(
         batch_id=batch_id,
         day=day,
         start_time=start_time,
         is_active=True
     ).first()
     
-def get_class_schedule_by_id(db: Session, schedule_id: int, batch_id: int) -> ClassSchedule:
+def get_class_schedule_by_id(db: Session, schedule_id: int, batch_id: int) -> BatchClassSchedule:
     """
         Get class schedule by ID.
     """
     return (
-        db.query(ClassSchedule)
+        db.query(BatchClassSchedule)
         .filter_by(
             id=schedule_id, 
             batch_id=batch_id, 
@@ -111,23 +118,23 @@ def get_class_schedule_by_id(db: Session, schedule_id: int, batch_id: int) -> Cl
 
 # ---------------------- STUDENT QUERIES ----------------------:
 
-def get_student_by_id(db: Session, user_id: int) -> Student:
+def get_student_by_id(db: Session, user_id: int) -> UserEducation:
     """
         Get student email by id.
     """
-    return db.query(Student).filter(Student.user_id == user_id).first()
+    return db.query(UserEducation).filter(UserEducation.user_id == user_id).first()
 
-def get_student(db: Session, student_id: int) -> Student:
+def get_student(db: Session, student_id: int) -> UserEducation:
     """
         Get student by id.
     """
-    return db.query(Student).filter(Student.id == student_id).first()
+    return db.query(UserEducation).filter(UserEducation.id == student_id).first()
 
-def get_students(db: Session) -> List[Student]:
+def get_students(db: Session) -> List[UserEducation]:
     """
         Get all students.
     """
-    return db.query(Student).all()
+    return db.query(UserEducation).all()
 
 def get_mapped_batch_student(db: Session, mapping_id: int) -> BatchStudent:
     return db.query(BatchStudent).filter(BatchStudent.id == mapping_id).first()

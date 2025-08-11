@@ -6,7 +6,19 @@ from pydantic import (
     field_validator
 )
 
+from app.utils.enums import UserEducationStatus
 from app.utils.validation import validate_password
+
+class UserEducationRequest(BaseModel):
+    degree: str
+    specialization: str 
+    start_year: int
+    end_year: int
+    current_year_of_study: Optional[int] = None
+    status: UserEducationStatus
+    city: str 
+    state: str 
+
 
 class UserCreationRequest(BaseModel):
     name: str
@@ -15,6 +27,7 @@ class UserCreationRequest(BaseModel):
     password: str
     role: str
     phone_number: str
+    education: UserEducationRequest
 
     @field_validator("password")
     def validate_user_creation_password(cls, password: str):
@@ -26,6 +39,22 @@ class UserResponse(BaseModel):
     message: str
 
 
+class UserEducationResponse(BaseModel):
+    id: int 
+    degree: str 
+    specialization: str 
+    start_year: int 
+    end_year: int 
+    current_year_of_study: Optional[int] = None
+    status: str 
+    city: str 
+    state: str 
+    created_at: datetime 
+    created_by: str 
+    updated_at: datetime
+    updated_by: str
+
+
 class GetUserDetailsResponse(BaseModel):
     id: int
     name: str 
@@ -33,6 +62,7 @@ class GetUserDetailsResponse(BaseModel):
     gender: str
     phone_number: str
     role: str
+    education: UserEducationResponse
     created_at: datetime
     created_by: Optional[str] = None
     updated_at: datetime
@@ -45,6 +75,7 @@ class UpdateUserRequest(BaseModel):
     gender: str
     role: str
     phone_number: str
+    education: UserEducationRequest
     is_active: Optional[bool] = None
 
 

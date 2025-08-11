@@ -108,6 +108,24 @@ async def update_user_by_id(
         )
     )
 
+
+@router.post(
+    "", 
+    response_model=ApiResponse[UserResponse], 
+    status_code=status.HTTP_201_CREATED
+)
+async def create_user(
+    request_state: Request,
+    request: UserCreationRequest, 
+    service: UserService = Depends(UserService)
+) -> ApiResponse[UserResponse]:
+    return ApiResponse(data=service.create_user(
+            logged_in_user_id=request_state.state.user.id, 
+            request=request
+        )
+    )
+
+
 @router.put(
     "/password", 
     response_model=ApiResponse[UserResponse], 
