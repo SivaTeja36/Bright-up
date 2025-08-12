@@ -201,7 +201,7 @@ class BatchService:
                 detail=error_message
             )
     
-    def map_student_to_batch(
+    def create_batch_students(
         self, 
         batch_id: int, 
         request: MapUserToBatchRequest, 

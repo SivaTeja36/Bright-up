@@ -111,22 +111,27 @@ async def delete_batch_by_id(
 
 
 @router.post(
-    "/{batch_id}/map-students",
+    "/{batch_id}/students",
     response_model=ApiResponse[SuccessMessageResponse],
     status_code=status.HTTP_201_CREATED
 )
-async def map_student_to_batch(
+async def create_batch_students(
     batch_id: PositiveInt,
     request: MapUserToBatchRequest,
     request_state: Request,
     service: BatchService = Depends(BatchService)
 ) -> ApiResponse[SuccessMessageResponse]:
     loggedin_user_id = request_state.state.user.id
-    return ApiResponse(data=service.map_student_to_batch(batch_id, request, loggedin_user_id))
+    return ApiResponse(data=service.create_batch_students(
+            batch_id=batch_id, 
+            request=request, 
+            logged_in_user_id=loggedin_user_id
+        )
+    )
 
 
 @router.get(
-    "/{batch_id}/map-students",
+    "/{batch_id}/students",
     response_model=ApiResponse[List[GetMappedBatchStudentResponse]],
     status_code=status.HTTP_200_OK,
     summary="Retrieve all batch students"
@@ -139,7 +144,7 @@ async def get_batch_students(
 
 
 @router.get(
-    "/{batch_id}/map-students/{student_batch_id}",
+    "/{batch_id}/students/{batch_student_id}",
     response_model=ApiResponse[GetMappedBatchStudentResponse],
     status_code=status.HTTP_200_OK,
     summary="Retrieve a batch student by ID"
@@ -153,7 +158,7 @@ async def get_batch_student_by_id(
 
 
 @router.put(
-    "/{batch_id}/map-students/{student_batch_id}",
+    "/{batch_id}/students/{batch_student_id}",
     response_model=ApiResponse[SuccessMessageResponse],
     status_code=status.HTTP_200_OK,
     summary="Update a batch student"
@@ -166,11 +171,17 @@ async def update_batch_student_by_id(
     service: BatchService = Depends(BatchService)
 ) -> ApiResponse[SuccessMessageResponse]:
     logged_in_user_id = request_state.state.user.id
-    return ApiResponse(data=service.update_batch_student_by_id(batch_id, batch_student_id, request, logged_in_user_id))
+    return ApiResponse(data=service.update_batch_student_by_id(
+            batch_id=batch_id, 
+            batch_student_id=batch_student_id, 
+            request=request, 
+            logged_in_user_id=logged_in_user_id
+        )
+    )
 
 
 @router.delete(
-    "/{batch_id}/map-students/{student_batch_id}",
+    "/{batch_id}/students/{batch_student_id}",
     response_model=ApiResponse[SuccessMessageResponse],
     status_code=status.HTTP_200_OK,
     summary="Delete a batch student"
