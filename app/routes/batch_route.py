@@ -7,12 +7,13 @@ from fastapi import (
 )
 from pydantic import PositiveInt
 
-from app.models.base_response_model import (
+from app.models.base_response_models import (
     ApiResponse, 
     SuccessMessageResponse
 )
 from app.models.batch_models import (
     BatchRequest,
+    BatchStudentPaymentRequest,
     ClassScheduleRequest,
     GetBatchResponse,
     GetClassScheduleResponse,
@@ -116,9 +117,9 @@ async def delete_batch_by_id(
     status_code=status.HTTP_201_CREATED
 )
 async def create_batch_students(
+    request_state: Request,
     batch_id: PositiveInt,
     request: MapUserToBatchRequest,
-    request_state: Request,
     service: BatchService = Depends(BatchService)
 ) -> ApiResponse[SuccessMessageResponse]:
     loggedin_user_id = request_state.state.user.id
@@ -192,6 +193,71 @@ async def delete_batch_student_by_id(
     service: BatchService = Depends(BatchService)
 ) -> ApiResponse[SuccessMessageResponse]:
     return ApiResponse(data=service.delete_batch_student_by_id(batch_id, batch_student_id))
+
+
+@router.post(
+    "/{batch_id}/students/{batch_student_id}/payments",
+    response_model=ApiResponse[SuccessMessageResponse],
+    status_code=status.HTTP_201_CREATED
+)
+async def create_batch_student_payment(
+    request_state: Request,
+    batch_id: PositiveInt,
+    batch_student_id: PositiveInt,
+    request: BatchStudentPaymentRequest,
+    service: BatchService = Depends(BatchService)
+) -> ApiResponse[SuccessMessageResponse]:
+    loggedin_user_id = request_state.state.user.id
+    return ApiResponse(data=service.create_batch_student_payment(
+            batch_id=batch_id, 
+            batch_student_id=batch_student_id,
+            request=request, 
+            logged_in_user_id=loggedin_user_id
+        )
+    )
+
+@router.get(
+    "/{batch_id}/students/{batch_student_id}/payments",
+    response_model=ApiResponse[SuccessMessageResponse],
+    status_code=status.HTTP_201_CREATED
+)
+async def get_all_batch_student_payments(
+    request_state: Request,
+    batch_id: PositiveInt,
+    batch_student_id: PositiveInt,
+    request: BatchStudentPaymentRequest,
+    service: BatchService = Depends(BatchService)
+) -> ApiResponse[SuccessMessageResponse]:
+    loggedin_user_id = request_state.state.user.id
+    return ApiResponse(data=service.get_all_batch_student_payments(
+            batch_id=batch_id, 
+            batch_student_id=batch_student_id,
+            request=request, 
+            logged_in_user_id=loggedin_user_id
+        )
+    )
+
+@router.put(
+    "/{batch_id}/students/{batch_student_id}/payments/{payment_id}",
+    response_model=ApiResponse[SuccessMessageResponse],
+    status_code=status.HTTP_201_CREATED
+)
+async def update_batch_student_payment_by_id(
+    request_state: Request,
+    batch_id: PositiveInt,
+    batch_student_id: PositiveInt,
+    payment_id: PositiveInt,
+    request: BatchStudentPaymentRequest,
+    service: BatchService = Depends(BatchService)
+) -> ApiResponse[SuccessMessageResponse]:
+    loggedin_user_id = request_state.state.user.id
+    return ApiResponse(data=service.create_batch_student_payment(
+            batch_id=batch_id, 
+            batch_student_id=batch_student_id,
+            request=request, 
+            logged_in_user_id=loggedin_user_id
+        )
+    )
 
 
 @router.post(

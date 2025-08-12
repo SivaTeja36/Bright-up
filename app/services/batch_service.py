@@ -17,12 +17,13 @@ from app.entities.batch_student import BatchStudent
 from app.entities.batch_student_payment import BatchStudentPayment
 from app.entities.syllabus import Syllabus
 from app.entities.user import User
-from app.models.base_response_model import (
+from app.models.base_response_models import (
     SuccessMessageResponse,  
     
 )
 from app.models.batch_models import (
-    BatchRequest, 
+    BatchRequest,
+    BatchStudentPaymentRequest, 
     GetBatchResponse,
     GetClassScheduleResponse,
     GetMappedBatchStudentResponse,
@@ -37,6 +38,7 @@ from app.utils.constants import (
     BATCH_NOT_FOUND,
     BATCH_STUDENT_DELETED_SUCCESSFULLY,
     BATCH_STUDENT_NOT_FOUND,
+    BATCH_STUDENT_PAYMENT_CREATED_SUCCESSFULLY,
     BATCH_STUDENT_UPDATED_SUCCESSFULLY,
     BATCH_UPDATED_SUCCESSFULLY,
     CLASS_SCHEDULE_CREATED_SUCCESSFULLY,
@@ -379,6 +381,45 @@ class BatchService:
         self.db.commit() 
         
         return SuccessMessageResponse(message=BATCH_STUDENT_DELETED_SUCCESSFULLY)
+    
+    def create_batch_student_payment(
+        self,
+        batch_id: int, 
+        batch_student_id: int,
+        request: BatchStudentPaymentRequest, 
+        logged_in_user_id: int
+    ) -> SuccessMessageResponse:
+        batch_student = (
+            self.db.query(BatchStudent)
+            .filter(
+                BatchStudent.batch_id == batch_id,
+                BatchStudent.id == batch_student_id
+            )
+            .first()
+        )
+
+        validate_data_not_found(batch_student, BATCH_STUDENT_NOT_FOUND)
+
+        batch_student_payment = BatchStudentPayment(
+            batch_student_id=batch_student_id,
+            payment_date=request.payment_date,
+            amount_paid=request.amount_paid,
+            mentor_share=request.mentor_share,
+            referral_share=request.referral_share,
+            created_by=logged_in_user_id,
+            updated_by=logged_in_user_id
+        )
+
+        self.db.add(batch_student_payment)
+        self.db.commit()
+        
+        return SuccessMessageResponse(message=BATCH_STUDENT_PAYMENT_CREATED_SUCCESSFULLY)
+    
+    def get_all_batch_student_payments(self):
+        pass
+
+    def update_batch_student_payment_by_id(self):
+        pass
 
     def create_schedule(
         self, 

@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.connectors.database_connector import get_db
 from app.entities.batch import Batch
 from app.entities.syllabus import Syllabus
-from app.models.base_response_model import SuccessMessageResponse
+from app.models.base_response_models import SuccessMessageResponse
 from app.models.syllabus_models import (
     GetSyllabusResponse, 
     SyllabusRequest

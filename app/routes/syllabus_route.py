@@ -7,7 +7,7 @@ from fastapi import (
 )
 from pydantic import PositiveInt
 
-from app.models.base_response_model import (
+from app.models.base_response_models import (
     ApiResponse, 
     SuccessMessageResponse
 )

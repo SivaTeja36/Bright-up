@@ -8,7 +8,7 @@ from app.models.auth_models import (
     LoginRequest, 
     LoginResponse
 )
-from app.models.base_response_model import ApiResponse
+from app.models.base_response_models import ApiResponse
 from app.services.auth_service import AuthService
 
 router = APIRouter(tags=["AUTHENTICATION MANAGEMENT SERVICE"])

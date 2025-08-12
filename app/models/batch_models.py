@@ -76,6 +76,13 @@ class UpdatedBatchStudentRequest(BaseModel):
     joined_at: date 
     
 
+class BatchStudentPaymentRequest(BaseModel):
+    payment_date: date 
+    amount_paid: int 
+    mentor_share: int 
+    referral_share: int 
+
+
 class ClassScheduleRequest(BaseModel):
     day: Days
     start_time: time 
