@@ -1,15 +1,22 @@
 from typing import List
 
 from dataclasses import dataclass
-from fastapi import Depends
+from fastapi import (
+    Depends, 
+    HTTPException, 
+    status
+)
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from app.connectors.database_connector import get_db
 from app.entities.batch import Batch
 from app.entities.batch_class_schedule import BatchClassSchedule
 from app.entities.batch_mentor import BatchMentor
+from app.entities.batch_student import BatchStudent
+from app.entities.batch_student_payment import BatchStudentPayment
 from app.entities.syllabus import Syllabus
+from app.entities.user import User
 from app.models.base_response_model import (
     SuccessMessageResponse,  
     
@@ -18,20 +25,30 @@ from app.models.batch_models import (
     BatchRequest, 
     GetBatchResponse,
     GetClassScheduleResponse,
-    UpdateClassScheduleRequest
+    GetMappedBatchStudentResponse,
+    MapUserToBatchRequest,
+    UpdateClassScheduleRequest,
+    UpdatedBatchStudentRequest
 )
 from app.models.batch_models import ClassScheduleRequest
 from app.utils.constants import (
     BATCH_CREATED_SUCCESSFULLY,
     BATCH_DELETED_SUCCESSFULLY,
     BATCH_NOT_FOUND,
+    BATCH_STUDENT_DELETED_SUCCESSFULLY,
+    BATCH_STUDENT_NOT_FOUND,
+    BATCH_STUDENT_UPDATED_SUCCESSFULLY,
     BATCH_UPDATED_SUCCESSFULLY,
     CLASS_SCHEDULE_CREATED_SUCCESSFULLY,
     CLASS_SCHEDULE_DELETED_SUCCESSFULLY,
     CLASS_SCHEDULE_NOT_FOUND,
     CLASS_SCHEDULE_UPDATED_SUCCESSFULLY,
     ONE_OR_MORE_SYLLABUS_NOT_FOUND,
-    SCHEDULE_FOR_THIS_DAY_ALREADY_EXISTS_FOR_THIS_BATCH
+    REFERRED_USER_NOT_FOUND,
+    SCHEDULE_FOR_THIS_DAY_ALREADY_EXISTS_FOR_THIS_BATCH,
+    STUDENT_ALREADY_EXISTS_IN_THE_BATCH,
+    STUDENT_NOT_FOUND,
+    USER_MAPPED_TO_BATCH_SUCCESSFULLY
 )
 from app.utils.db_queries import (
     count_syllabus_by_ids,
@@ -39,7 +56,9 @@ from app.utils.db_queries import (
     get_batch,
     get_batch_class_schedules,
     get_class_schedule_by_batch_and_time,
-    get_class_schedule_by_id
+    get_class_schedule_by_id,
+    get_student_in_batch,
+    get_user_by_id
 )
 from app.utils.helpers import get_all_users_dict
 from app.utils.validation import (
@@ -175,6 +194,192 @@ class BatchService:
         
         return SuccessMessageResponse(message=BATCH_DELETED_SUCCESSFULLY)
     
+    def validate_user_details(self, user_details: User, error_message: str):
+        if not user_details:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_message
+            )
+    
+    def map_student_to_batch(
+        self, 
+        batch_id: int, 
+        request: MapUserToBatchRequest, 
+        logged_in_user_id: int
+    ) -> SuccessMessageResponse:
+        user = get_user_by_id(self.db, request.student_id)
+        self.validate_user_details(user, STUDENT_NOT_FOUND)
+
+        user = get_user_by_id(self.db, request.referral_by)
+        self.validate_user_details(user, REFERRED_USER_NOT_FOUND)
+        
+        existing_student= get_student_in_batch(self.db, request.student_id, batch_id)
+        validate_data_exits(existing_student, STUDENT_ALREADY_EXISTS_IN_THE_BATCH)
+
+        batch_student = BatchStudent(
+            batch_id=batch_id,
+            student_id=request.student_id,
+            class_fee=request.class_fee,
+            mentor_fee=request.mentor_fee,
+            referral_by=request.referral_by,
+            referral_fee=request.referral_fee,
+            joined_at=request.joined_at,
+            created_by=logged_in_user_id,
+            updated_by=logged_in_user_id
+        )
+
+        self.db.add(batch_student)
+        self.db.commit()
+
+        return SuccessMessageResponse(
+            id=batch_student.id,
+            message=USER_MAPPED_TO_BATCH_SUCCESSFULLY
+        )
+    
+    def get_batch_student_response(
+        self,
+        student_user: User,
+        student_batch: BatchStudent,
+        payments: list[BatchStudentPayment],
+        users_dict: dict[int, str]
+    ) -> GetMappedBatchStudentResponse:
+
+        paid_fee = sum(p.amount_paid for p in payments)
+        mentor_recieved_fee = sum(p.mentor_share for p in payments)
+        referral_recieved_fee = sum(p.referral_share for p in payments)
+
+        return GetMappedBatchStudentResponse(
+            id=student_batch.id,
+            name=student_user.name,
+            gender=student_user.gender,
+            email=student_user.email,
+            phone_number=student_user.phone_number,
+            class_fee=student_batch.class_fee,
+            paid_fee=paid_fee,
+            student_pending_fee=student_batch.class_fee - paid_fee,
+            mentor_fee=student_batch.mentor_fee,
+            mentor_recieved_fee=mentor_recieved_fee,
+            mentor_pending_fee=student_batch.mentor_fee - mentor_recieved_fee,
+            referral_by=users_dict.get(student_batch.referral_by),
+            referral_fee=student_batch.referral_fee,
+            referral_recieved_fee=referral_recieved_fee,
+            referral_pending_fee=student_batch.referral_fee - referral_recieved_fee,
+            joined_at=student_batch.joined_at,
+            created_at=student_batch.created_at,
+            created_by=users_dict.get(student_batch.created_by),
+            updated_at=student_batch.updated_at,
+            updated_by=users_dict.get(student_batch.updated_by)
+        )
+
+
+    def get_batch_students(self, batch_id: int) -> list[GetMappedBatchStudentResponse]:
+        StudentUser = aliased(User)
+
+        results = (
+            self.db.query(StudentUser, BatchStudent)
+            .join(StudentUser, StudentUser.id == BatchStudent.student_id)
+            .filter(BatchStudent.batch_id == batch_id)
+            .all()
+        )
+
+        users_dict = get_all_users_dict(self.db)
+
+        batch_student_ids = [bs.id for _, bs in results]
+        payments_map = {
+            pid: []
+            for pid in batch_student_ids
+        }
+        payments = (
+            self.db.query(BatchStudentPayment)
+            .filter(BatchStudentPayment.batch_student_id.in_(batch_student_ids))
+            .all()
+        )
+
+        for p in payments:
+            payments_map[p.batch_student_id].append(p)
+
+        return [
+            self.get_batch_student_response(student_user, student_batch, payments_map.get(student_batch.id, []), users_dict)
+            for student_user, student_batch in results
+        ]
+    
+    def get_batch_student_by_id(self, batch_id: int, batch_student_id: int) -> GetMappedBatchStudentResponse:
+        StudentUser = aliased(User)
+
+        student_user, student_batch = (
+            self.db.query(StudentUser, BatchStudent)
+            .join(StudentUser, StudentUser.id == BatchStudent.student_id)
+            .filter(
+                BatchStudent.batch_id == batch_id,
+                BatchStudent.id == batch_student_id
+            )
+            .first()
+        )
+
+        validate_data_not_found(student_batch, BATCH_STUDENT_NOT_FOUND)
+
+        users_dict = get_all_users_dict(self.db)
+
+        payments = (
+            self.db.query(BatchStudentPayment)
+            .filter(BatchStudentPayment.batch_student_id == student_batch.id)
+            .all()
+        )
+
+        return self.get_batch_student_response(student_user, student_batch, payments, users_dict)
+    
+    def update_batch_student_by_id(
+        self,
+        batch_id: int,
+        batch_student_id: int,
+        request: UpdatedBatchStudentRequest,
+        logged_in_user_id: int
+    ) -> SuccessMessageResponse:
+
+        student_batch = (
+            self.db.query(BatchStudent)
+            .filter(
+                BatchStudent.batch_id == batch_id,
+                BatchStudent.id == batch_student_id
+            )
+            .first()
+        )
+
+        validate_data_not_found(student_batch, BATCH_STUDENT_NOT_FOUND)
+
+        if request.referral_by:
+            referred_user = self.db.query(User).filter(User.id == request.referral_by).first()
+            validate_data_not_found(referred_user, REFERRED_USER_NOT_FOUND)
+
+        student_batch.class_fee = request.class_fee
+        student_batch.mentor_fee = request.mentor_fee
+        student_batch.referral_by = request.referral_by
+        student_batch.referral_fee = request.referral_fee
+        student_batch.joined_at = request.joined_at
+        student_batch.updated_at = func.now()
+        student_batch.updated_by = logged_in_user_id
+
+        self.db.commit()
+
+        return SuccessMessageResponse(message=BATCH_STUDENT_UPDATED_SUCCESSFULLY)
+
+    def delete_batch_student_by_id(self, batch_id: int, batch_student_id: int) -> SuccessMessageResponse:
+        batch_student = (
+            self.db.query(BatchStudent)
+            .filter(
+                BatchStudent.batch_id == batch_id,
+                BatchStudent.id == batch_student_id
+            )
+            .first()
+        )
+
+        validate_data_not_found(batch_student, BATCH_STUDENT_NOT_FOUND)
+
+        self.db.delete(batch_student)
+        self.db.commit() 
+        
+        return SuccessMessageResponse(message=BATCH_STUDENT_DELETED_SUCCESSFULLY)
+
     def create_schedule(
         self, 
         batch_id: int, 

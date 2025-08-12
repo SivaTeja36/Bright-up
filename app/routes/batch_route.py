@@ -16,7 +16,10 @@ from app.models.batch_models import (
     ClassScheduleRequest,
     GetBatchResponse,
     GetClassScheduleResponse,
-    UpdateClassScheduleRequest
+    GetMappedBatchStudentResponse,
+    MapUserToBatchRequest,
+    UpdateClassScheduleRequest,
+    UpdatedBatchStudentRequest
 )
 from app.services.batch_service import BatchService
 
@@ -105,6 +108,79 @@ async def delete_batch_by_id(
         Delete batch by id.
     """
     return ApiResponse(data=service.delete_batch_by_id(batch_id))
+
+
+@router.post(
+    "/{batch_id}/map-students",
+    response_model=ApiResponse[SuccessMessageResponse],
+    status_code=status.HTTP_201_CREATED
+)
+async def map_student_to_batch(
+    batch_id: PositiveInt,
+    request: MapUserToBatchRequest,
+    request_state: Request,
+    service: BatchService = Depends(BatchService)
+) -> ApiResponse[SuccessMessageResponse]:
+    loggedin_user_id = request_state.state.user.id
+    return ApiResponse(data=service.map_student_to_batch(batch_id, request, loggedin_user_id))
+
+
+@router.get(
+    "/{batch_id}/map-students",
+    response_model=ApiResponse[List[GetMappedBatchStudentResponse]],
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve all batch students"
+)
+async def get_batch_students(
+    batch_id: PositiveInt,
+    service: BatchService = Depends(BatchService)
+) -> ApiResponse[List[GetMappedBatchStudentResponse]]:
+    return ApiResponse(data=service.get_batch_students(batch_id))
+
+
+@router.get(
+    "/{batch_id}/map-students/{student_batch_id}",
+    response_model=ApiResponse[GetMappedBatchStudentResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve a batch student by ID"
+)
+async def get_batch_student_by_id(
+    batch_id: PositiveInt,
+    batch_student_id: PositiveInt,
+    service: BatchService = Depends(BatchService)
+) -> ApiResponse[GetMappedBatchStudentResponse]:
+    return ApiResponse(data=service.get_batch_student_by_id(batch_id, batch_student_id))
+
+
+@router.put(
+    "/{batch_id}/map-students/{student_batch_id}",
+    response_model=ApiResponse[SuccessMessageResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Update a batch student"
+)
+async def update_batch_student_by_id(
+    request_state: Request,
+    batch_id: PositiveInt,
+    batch_student_id: PositiveInt,
+    request: UpdatedBatchStudentRequest,
+    service: BatchService = Depends(BatchService)
+) -> ApiResponse[SuccessMessageResponse]:
+    logged_in_user_id = request_state.state.user.id
+    return ApiResponse(data=service.update_batch_student_by_id(batch_id, batch_student_id, request, logged_in_user_id))
+
+
+@router.delete(
+    "/{batch_id}/map-students/{student_batch_id}",
+    response_model=ApiResponse[SuccessMessageResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Delete a batch student"
+)
+async def delete_batch_student_by_id(
+    batch_id: PositiveInt,
+    batch_student_id: PositiveInt,
+    service: BatchService = Depends(BatchService)
+) -> ApiResponse[SuccessMessageResponse]:
+    return ApiResponse(data=service.delete_batch_student_by_id(batch_id, batch_student_id))
 
 
 @router.post(

@@ -88,6 +88,15 @@ def get_all_batches(db: Session) -> List[Batch]:
     """
     return db.query(Batch).all()
 
+def get_batch_student_by_id(db: Session, batch_id: int, batch_student_id: int):
+    return (
+        db.query(BatchStudent) 
+        .filter(
+            BatchStudent.batch_id == batch_id,
+            BatchStudent.id == batch_student_id
+        ).first()
+    )
+
 def get_batch_class_schedules(db: Session, batch_id: int):
     return db.query(BatchClassSchedule).filter_by(batch_id=batch_id, is_active=True).all()
 
