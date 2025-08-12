@@ -28,6 +28,7 @@ class GetBatchResponse(BaseModel):
     syllabus: List[dict] = None
     start_date: date
     end_date: date
+    mentor_id: int
     mentor: str
     created_at: datetime 
     created_by: str

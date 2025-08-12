@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 from dataclasses import dataclass
 from fastapi import (
@@ -17,6 +17,7 @@ from app.entities.batch_student import BatchStudent
 from app.entities.batch_student_payment import BatchStudentPayment
 from app.entities.syllabus import Syllabus
 from app.entities.user import User
+from app.entities.user_education import UserEducation
 from app.models.base_response_models import (
     SuccessMessageResponse,  
     
@@ -33,9 +34,11 @@ from app.models.batch_models import (
     UpdatedBatchStudentRequest
 )
 from app.models.batch_models import ClassScheduleRequest
+from app.models.user_models import GetUserDetailsResponse, UserEducationResponse
 from app.utils.constants import (
     BATCH_CREATED_SUCCESSFULLY,
     BATCH_DELETED_SUCCESSFULLY,
+    BATCH_MENTOR_NOT_FOUND,
     BATCH_NOT_FOUND,
     BATCH_STUDENT_DELETED_SUCCESSFULLY,
     BATCH_STUDENT_NOT_FOUND,
@@ -63,9 +66,10 @@ from app.utils.db_queries import (
     get_class_schedule_by_batch_and_time,
     get_class_schedule_by_id,
     get_student_in_batch,
-    get_user_by_id
+    get_user_by_id,
+    get_user_education_by_id
 )
-from app.utils.helpers import get_all_users_dict
+from app.utils.helpers import get_all_users, get_all_users_dict
 from app.utils.validation import (
     validate_data_exits, 
     validate_data_not_found
@@ -144,6 +148,7 @@ class BatchService:
             syllabus=syllabus,
             start_date=batch.start_date,
             end_date=batch.end_date,
+            mentor_id=mentor.mentor_id,
             mentor=users.get(mentor.mentor_id),
             created_at=batch.created_at,
             created_by=users.get(batch.created_by),

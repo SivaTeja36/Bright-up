@@ -23,6 +23,7 @@ from app.models.batch_models import (
     UpdateClassScheduleRequest,
     UpdatedBatchStudentRequest
 )
+from app.models.user_models import GetUserDetailsResponse
 from app.services.batch_service import BatchService
 
 router = APIRouter(prefix="/batches", tags=["BATCH MANAGEMENT SERVICE"])
