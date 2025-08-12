@@ -83,6 +83,18 @@ class BatchStudentPaymentRequest(BaseModel):
     referral_share: int 
 
 
+class GetBatchStudentPayment(BaseModel):
+    id: int
+    payment_date: date 
+    amount_paid: int 
+    mentor_share: int 
+    referral_share: int 
+    created_at: datetime 
+    created_by: str 
+    updated_at: datetime 
+    updated_by: str
+
+
 class ClassScheduleRequest(BaseModel):
     day: Days
     start_time: time 

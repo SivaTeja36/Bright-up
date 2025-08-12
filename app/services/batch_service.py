@@ -25,6 +25,7 @@ from app.models.batch_models import (
     BatchRequest,
     BatchStudentPaymentRequest, 
     GetBatchResponse,
+    GetBatchStudentPayment,
     GetClassScheduleResponse,
     GetMappedBatchStudentResponse,
     MapUserToBatchRequest,
@@ -39,6 +40,8 @@ from app.utils.constants import (
     BATCH_STUDENT_DELETED_SUCCESSFULLY,
     BATCH_STUDENT_NOT_FOUND,
     BATCH_STUDENT_PAYMENT_CREATED_SUCCESSFULLY,
+    BATCH_STUDENT_PAYMENT_NOT_FOUND,
+    BATCH_STUDENT_PAYMENT_UPDATED_SUCCESSFULLY,
     BATCH_STUDENT_UPDATED_SUCCESSFULLY,
     BATCH_UPDATED_SUCCESSFULLY,
     CLASS_SCHEDULE_CREATED_SUCCESSFULLY,
@@ -415,11 +418,84 @@ class BatchService:
         
         return SuccessMessageResponse(message=BATCH_STUDENT_PAYMENT_CREATED_SUCCESSFULLY)
     
-    def get_all_batch_student_payments(self):
-        pass
+    def get_all_batch_student_payments(
+        self,
+        batch_id: int, 
+        batch_student_id: int
+    ) -> List[GetBatchStudentPayment]:
+        batch_student = (
+            self.db.query(BatchStudent)
+            .filter(
+                BatchStudent.batch_id == batch_id,
+                BatchStudent.id == batch_student_id
+            )
+            .first()
+        )
 
-    def update_batch_student_payment_by_id(self):
-        pass
+        validate_data_not_found(batch_student, BATCH_STUDENT_NOT_FOUND)
+    
+        payments = (
+            self.db.query(BatchStudentPayment)
+            .filter(BatchStudentPayment.batch_student_id == batch_student_id)
+            .all()
+        )
+
+        users_dict = get_all_users_dict(self.db)
+
+        return [
+            GetBatchStudentPayment(
+                id=p.id,
+                payment_date=p.payment_date,
+                amount_paid=p.amount_paid,
+                mentor_share=p.mentor_share,
+                referral_share=p.referral_share,
+                created_at=p.created_at,
+                created_by=users_dict.get(p.created_by),
+                updated_at=p.updated_at,
+                updated_by=users_dict.get(p.updated_by)
+            )
+            for p in payments
+        ]
+
+    def update_batch_student_payment_by_id(
+        self,
+        batch_id: int, 
+        batch_student_id: int,
+        payment_id: int,
+        request: BatchStudentPaymentRequest, 
+        logged_in_user_id: int
+    ) -> SuccessMessageResponse:
+        batch_student = (
+            self.db.query(BatchStudent)
+            .filter(
+                BatchStudent.batch_id == batch_id,
+                BatchStudent.id == batch_student_id
+            )
+            .first()
+        )
+
+        validate_data_not_found(batch_student, BATCH_STUDENT_NOT_FOUND)
+
+        payment = (
+            self.db.query(BatchStudentPayment)
+            .filter(
+                BatchStudentPayment.id == payment_id,
+                BatchStudentPayment.batch_student_id == batch_student_id
+            )
+            .first()
+        )
+        validate_data_not_found(payment, BATCH_STUDENT_PAYMENT_NOT_FOUND)
+
+        payment.payment_date = request.payment_date
+        payment.amount_paid = request.amount_paid
+        payment.mentor_share = request.mentor_share
+        payment.referral_share = request.referral_share
+        payment.updated_at = func.now()
+        payment.updated_by = logged_in_user_id
+
+        self.db.commit()
+
+        return SuccessMessageResponse(message=BATCH_STUDENT_PAYMENT_UPDATED_SUCCESSFULLY)
 
     def create_schedule(
         self, 
