@@ -212,11 +212,14 @@ class BatchService:
         request: MapUserToBatchRequest, 
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
-        user = get_user_by_id(self.db, request.student_id)
-        self.validate_user_details(user, STUDENT_NOT_FOUND)
+        student_user = get_user_by_id(self.db, request.student_id)
+        self.validate_user_details(student_user, STUDENT_NOT_FOUND)
 
-        user = get_user_by_id(self.db, request.referral_by)
-        self.validate_user_details(user, REFERRED_USER_NOT_FOUND)
+        refferal_user = get_user_by_id(self.db, request.referral_by)
+        self.validate_user_details(refferal_user, REFERRED_USER_NOT_FOUND)
+
+        batch = get_batch(self.db, batch_id)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
         
         existing_student= get_student_in_batch(self.db, request.student_id, batch_id)
         validate_data_exits(existing_student, STUDENT_ALREADY_EXISTS_IN_THE_BATCH)
@@ -278,6 +281,9 @@ class BatchService:
 
 
     def get_batch_students(self, batch_id: int) -> list[GetMappedBatchStudentResponse]:
+        batch = get_batch(self.db, batch_id)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
+
         StudentUser = aliased(User)
 
         results = (
@@ -309,6 +315,9 @@ class BatchService:
         ]
     
     def get_batch_student_by_id(self, batch_id: int, batch_student_id: int) -> GetMappedBatchStudentResponse:
+        batch = get_batch(self.db, batch_id)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
+
         StudentUser = aliased(User)
 
         student_user, student_batch = (
@@ -340,6 +349,8 @@ class BatchService:
         request: UpdatedBatchStudentRequest,
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
+        batch = get_batch(self.db, batch_id)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
 
         student_batch = (
             self.db.query(BatchStudent)
@@ -369,6 +380,9 @@ class BatchService:
         return SuccessMessageResponse(message=BATCH_STUDENT_UPDATED_SUCCESSFULLY)
 
     def delete_batch_student_by_id(self, batch_id: int, batch_student_id: int) -> SuccessMessageResponse:
+        batch = get_batch(self.db, batch_id)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
+
         batch_student = (
             self.db.query(BatchStudent)
             .filter(
@@ -392,6 +406,9 @@ class BatchService:
         request: BatchStudentPaymentRequest, 
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
+        batch = get_batch(self.db, batch_id)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
+
         batch_student = (
             self.db.query(BatchStudent)
             .filter(
@@ -423,6 +440,9 @@ class BatchService:
         batch_id: int, 
         batch_student_id: int
     ) -> List[GetBatchStudentPayment]:
+        batch = get_batch(self.db, batch_id)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
+
         batch_student = (
             self.db.query(BatchStudent)
             .filter(
@@ -465,6 +485,9 @@ class BatchService:
         request: BatchStudentPaymentRequest, 
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
+        batch = get_batch(self.db, batch_id)
+        validate_data_not_found(batch, BATCH_NOT_FOUND)
+        
         batch_student = (
             self.db.query(BatchStudent)
             .filter(
