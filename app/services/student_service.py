@@ -35,7 +35,8 @@ from app.utils.db_queries import (
     get_student,
     get_student_by_id, 
     get_student_in_batch,
-    get_students
+    get_students,
+    get_user_by_id
 )
 from app.utils.helpers import get_all_users_dict
 from app.utils.validation import (
@@ -107,7 +108,8 @@ class StudentService:
         student = get_student(self.db, student_id)
         validate_data_not_found(student, STUDENT_NOT_FOUND)
 
-        return self.get_student_response(student)
+        users = get_all_users_dict(self.db)
+        return self.get_student_response(student, users)
 
     def update_student_by_id(
         self, 
@@ -216,8 +218,10 @@ class StudentService:
         student_batch = get_mapped_batch_student(self.db, mapping_id)
         validate_data_not_found(student_batch, MAPPING_NOT_FOUND)
         student = get_student(self.db, student_batch.student_id)
+        student_user = get_user_by_id(self.db, student.user_id)
+        users_dict = get_all_users_dict(self.db)
 
-        return self.get_batch_student_response(student, student_batch)
+        return self.get_batch_student_response(student_user, student_batch, users_dict)
 
     def update_batch_student_by_id(
         self,

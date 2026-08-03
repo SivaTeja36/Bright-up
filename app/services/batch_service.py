@@ -56,16 +56,17 @@ class BatchService:
         request: BatchRequest, 
         logged_in_user_id: int
     ) -> SuccessMessageResponse:
-        existing_syllabus_ids = count_syllabus_by_ids(self.db, request.syllabus_ids)
+        syllabus_ids = request.syllabus_ids or []
+        existing_syllabus_ids = count_syllabus_by_ids(self.db, syllabus_ids)
         
-        if existing_syllabus_ids != len(request.syllabus_ids):
+        if existing_syllabus_ids != len(syllabus_ids):
             validate_data_not_found(False, ONE_OR_MORE_SYLLABUS_NOT_FOUND)
         
         new_batch = Batch(
-            syllabus_ids=list(set(request.syllabus_ids)),
+            syllabus_ids=list(set(syllabus_ids)),
             start_date=request.start_date,
             end_date=request.end_date,
-            mentor=request.mentor,
+            mentor_id=request.mentor_id,
             created_by=logged_in_user_id,
             updated_by=logged_in_user_id
         )
@@ -94,7 +95,8 @@ class BatchService:
             syllabus=syllabus,
             start_date=batch.start_date,
             end_date=batch.end_date,
-            mentor=batch.mentor,
+            mentor_id=batch.mentor_id,
+            mentor=users.get(batch.mentor_id),
             created_at=batch.created_at,
             created_by=users.get(batch.created_by),
             updated_at=batch.updated_at,
@@ -124,15 +126,16 @@ class BatchService:
         batch = get_batch(self.db, batch_id)
         validate_data_not_found(batch, BATCH_NOT_FOUND)
         
-        existing_syllabus_ids = count_syllabus_by_ids(self.db, request.syllabus_ids)
+        syllabus_ids = request.syllabus_ids or []
+        existing_syllabus_ids = count_syllabus_by_ids(self.db, syllabus_ids)
         
-        if existing_syllabus_ids != len(request.syllabus_ids):
+        if existing_syllabus_ids != len(syllabus_ids):
             validate_data_not_found(False, ONE_OR_MORE_SYLLABUS_NOT_FOUND)
         
-        batch.syllabus_ids = list(set(request.syllabus_ids))
+        batch.syllabus_ids = list(set(syllabus_ids))
         batch.start_date = request.start_date
         batch.end_date = request.end_date
-        batch.mentor = request.mentor
+        batch.mentor_id = request.mentor_id
         batch.updated_at = func.now()
         batch.updated_by = logged_in_user_id
         batch.is_active = request.is_active
