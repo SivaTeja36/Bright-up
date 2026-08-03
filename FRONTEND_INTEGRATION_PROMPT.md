@@ -72,6 +72,10 @@ The backend (FastAPI) batch endpoints have been changed:
     ]
   }
   ```
+  - **Parsing (important):** the user array is nested under `data`. 
+    - With axios: `const users = response.data.data;`
+    - The response body is `{ status_message, page, page_size, total_items, data: [...] }` — `data` is the array, NOT the whole response.
+  - Note: the dropdown will only contain the users that exist in the database (currently only 1 user is seeded). Create more users in the app if more entries are expected.
 
   **Role values returned by the API:** `ADMIN`, `MENTOR`, `STUDENT`, `GUEST`.
 
